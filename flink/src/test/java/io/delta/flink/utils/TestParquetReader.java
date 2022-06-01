@@ -55,7 +55,7 @@ public class TestParquetReader {
      * @throws IOException Thrown when the data cannot be read or writer cannot be instantiated
      */
     public static int readAndValidateAllTableRecords(DeltaLog deltaLog) throws IOException {
-        List<AddFile> deltaTableFiles = deltaLog.snapshot().getAllFiles();
+        List<AddFile> deltaTableFiles = deltaLog.update().getAllFiles();
         int cumulatedRecords = 0;
         for (AddFile addedFile : deltaTableFiles) {
             Path parquetFilePath = new Path(deltaLog.getPath().toString(), addedFile.getPath());
@@ -107,6 +107,7 @@ public class TestParquetReader {
             converter.toExternal(reader.nextRecord());
             recordsRead++;
         }
+        reader.close();
         return recordsRead;
     }
 

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "jobmanager",
+    "image": "flink:${flink_version}-scala_2.12-java8",
+    "command": [
+      "jobmanager"
+    ],
+    "cpu": 2048,
+    "memory": 4096,
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 8081,
+        "hostPort": 8081
+      }
+    ],
+    "environment": [
+      {
+        "name": "FLINK_PROPERTIES",
+        "value": "jobmanager.rpc.address: jobmanager\nfs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider\n"
+      },
+      {
+        "name": "ENABLE_BUILT_IN_PLUGINS",
+        "value": "flink-s3-fs-hadoop-${flink_version}.jar"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${cloudwatch_log_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "jobmanager_"
+      }
+    }
+  },
+  {
+    "name": "taskmanager",
+    "image": "flink:${flink_version}-scala_2.12-java8",
+    "command": [
+      "taskmanager"
+    ],
+    "cpu": 6144,
+    "memory": 11000,
+    "essential": true,
+    "environment": [
+      {
+        "name": "FLINK_PROPERTIES",
+        "value": "jobmanager.rpc.address: jobmanager\ntaskmanager.numberOfTaskSlots: 4\nfs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider\n"
+      },
+      {
+        "name": "ENABLE_BUILT_IN_PLUGINS",
+        "value": "flink-s3-fs-hadoop-${flink_version}.jar"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${cloudwatch_log_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "taskmanager_"
+      }
+    },
+    "links": [
+      "jobmanager:jobmanager"
+    ]
+  }
+]

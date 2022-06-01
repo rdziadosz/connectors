@@ -739,3 +739,44 @@ lazy val flink = (project in file("flink"))
     // Ensure unidoc is run with tests. Must be cleaned before test for unidoc to be generated.
     (Test / test) := ((Test / test) dependsOn (Compile / unidoc)).value
   )
+
+lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fatjar"))
+  .dependsOn(flink)
+  .dependsOn(standalone)
+  .settings(
+    name := "flink-end-to-end-tests-fatjar",
+    commonSettings,
+    releaseSettings,
+    libraryDependencies ++= Seq(
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+    ),
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+      case x => MergeStrategy.first
+    }
+  )
+
+lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
+  .dependsOn(flink % "test->test")
+  .dependsOn(standalone)
+  .settings(
+    name := "flink-end-to-end-tests",
+    commonSettings,
+    skipReleaseSettings,
+    fork := false,  // FIXME: Cannot pass environment variables to fork
+    libraryDependencies ++= Seq(
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
+      "org.awaitility" % "awaitility" % "4.2.0" % "test",
+    )
+  )
