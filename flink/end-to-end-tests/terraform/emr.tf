@@ -8,7 +8,7 @@ resource "aws_emr_cluster" "benchmarks" {
   ec2_attributes {
     instance_profile                  = aws_iam_instance_profile.benchmarks_emr_profile.arn
     key_name                          = aws_key_pair.benchmarks_emr_cluster.key_name
-    subnet_id                         = aws_subnet.benchmarks_subnet.id
+    subnet_id                         = aws_subnet.benchmarks_subnet1.id
     emr_managed_master_security_group = aws_security_group.allow_my_ip.id
     emr_managed_slave_security_group  = aws_security_group.allow_my_ip.id
   }

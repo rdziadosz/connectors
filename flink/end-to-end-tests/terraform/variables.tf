@@ -4,10 +4,16 @@ variable "region" {
   default     = "us-west-2"
 }
 
-variable "availability_zone" {
+variable "availability_zone1" {
   description = "The default availability zone to manage resources in."
   type        = string
   default     = "us-west-2a"
+}
+
+variable "availability_zone2" {
+  description = "The secondary availability zone."
+  type        = string
+  default     = "us-west-2b"
 }
 
 variable "benchmarks_bucket_name" {
