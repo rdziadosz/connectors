@@ -56,7 +56,6 @@ class DeltaSinkBatchExecutionJobE2ETest {
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         // AND
         StreamExecutionEnvironment env = getExecutionEnvironment();
-        env.getConfig().setExecutionMode(ExecutionMode.BATCH);
 
         // WHEN
         DeltaSinkBatchExecutionJob.getPipeline(env, tablePathS3a);

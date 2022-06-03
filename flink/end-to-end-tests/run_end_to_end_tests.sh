@@ -42,6 +42,7 @@ destroy_terraform_infrastructure() {
   echo "Terraform infrastructure destroyed."
 }
 
+# TODO: Move to JUNIT setup?
 copy_test_data_to_s3() {
   aws s3 cp $TEST_DATA_LOCAL_DIR $TEST_DATA_S3_LOCATION --recursive
 }
@@ -49,6 +50,7 @@ copy_test_data_to_s3() {
 run_end_to_end_tests() {
   echo "Running tests..."
   cd ../../
+  # TODO: run only '*E2ETest's
   build/sbt flinkE2E/test
 }
 

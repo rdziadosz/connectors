@@ -15,6 +15,7 @@ services:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-hadoop-1.13.0.jar
 
   taskmanager:
     build:
@@ -36,3 +37,4 @@ services:
         taskmanager.numberOfTaskSlots: 3
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-hadoop-1.13.0.jar
