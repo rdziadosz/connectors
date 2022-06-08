@@ -620,7 +620,7 @@ lazy val compatibility = (project in file("oss-compatibility-tests"))
     )
   )
 
-lazy val goldenTables = (project in file("golden-tables")) settings (
+lazy val goldenTables = (project in file("golden-tables")) settings(
   name := "golden-tables",
   commonSettings,
   skipReleaseSettings,
@@ -682,22 +682,20 @@ lazy val flinkE2E = (project in file("flink/end-to-end-tests"))
     commonSettings,
     releaseSettings,
     libraryDependencies ++= Seq(
-      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
-      "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
-      "org.apache.flink" % "flink-connector-files" % flinkVersion % "test" classifier "tests",
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "provided",
       "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
+      "org.apache.flink" % "flink-connector-files" % flinkVersion % "test" classifier "tests",
       "org.apache.flink" % "flink-connector-test-utils" % flinkVersion % "test",
       "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
       "org.apache.flink" % ("flink-test-utils_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
-      "org.mockito" % "mockito-inline" % "3.8.0" % "test",
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "org.junit.vintage" % "junit-vintage-engine" % "5.8.2" % "test",
-      "org.mockito" % "mockito-junit-jupiter" % "4.5.0" % "test",
       "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
-      "org.awaitility" % "awaitility" % "4.2.0" % "test",
-      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion
+      "org.awaitility" % "awaitility" % "4.2.0" % "test"
     ),
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard

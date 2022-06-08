@@ -38,7 +38,7 @@ public class SimpleTestSource
     @Override
     public void run(SourceContext<RowData> ctx) throws Exception {
         sendRecordsUntil(numberOfRecords, ctx);
-        idle();
+        idleForever();
     }
 
     private void sendRecordsUntil(int targetNumber, SourceContext<RowData> ctx)
@@ -58,7 +58,7 @@ public class SimpleTestSource
         }
     }
 
-    private void idle() throws InterruptedException {
+    private void idleForever() throws InterruptedException {
         while (!isCanceled) {
             Thread.sleep(10L);
         }
