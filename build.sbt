@@ -676,7 +676,7 @@ def flinkScalaVersion(scalaBinaryVersion: String): String = {
 
 lazy val flinkE2E = (project in file("flink/end-to-end-tests"))
   .dependsOn(flink)
-  .dependsOn(standalone % "provided")
+  .dependsOn(standalone)
   .settings(
     name := "delta-flink-end-to-end-tests",
     commonSettings,
@@ -696,7 +696,8 @@ lazy val flinkE2E = (project in file("flink/end-to-end-tests"))
       "org.mockito" % "mockito-junit-jupiter" % "4.5.0" % "test",
       "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
-      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "provided"
+      "org.awaitility" % "awaitility" % "4.2.0" % "test",
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion
     ),
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
