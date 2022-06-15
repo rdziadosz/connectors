@@ -42,8 +42,8 @@ lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
 val sparkVersion = "2.4.3"
 val hiveDeltaVersion = "0.5.0"
-val parquet4sVersion = "1.2.1"
-val parquetHadoopVersion = "1.10.1"
+val parquet4sVersion = "1.9.4"
+val parquetHadoopVersion = "1.12.0"
 val scalaTestVersion = "3.0.8"
 val deltaStorageVersion = "1.2.1"
 // Versions for Hive 3
@@ -167,7 +167,7 @@ lazy val hive = (project in file("hive")) dependsOn(standaloneCosmetic) settings
   // any runtime dependencies.
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-    "org.apache.parquet" % "parquet-hadoop" % "1.10.1" % "provided",
+    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" classifier "core",
     "org.apache.hive" % "hive-metastore" % hiveVersion % "provided"
   )
@@ -195,7 +195,7 @@ lazy val hiveTest = (project in file("hive-test")) settings (
   skipReleaseSettings,
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-    "org.apache.parquet" % "parquet-hadoop" % "1.10.1" % "provided",
+    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" classifier "core" excludeAll(
       ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
@@ -254,7 +254,7 @@ lazy val hiveTez = (project in file("hive-tez")) dependsOn(hiveTest % "test->tes
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided" excludeAll (
       ExclusionRule(organization = "com.google.protobuf")
       ),
-    "org.apache.parquet" % "parquet-hadoop" % "1.10.1" excludeAll(
+    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion excludeAll(
       ExclusionRule("org.apache.hadoop", "hadoop-client")
       ),
     "com.google.protobuf" % "protobuf-java" % "2.5.0",
@@ -335,7 +335,7 @@ lazy val hive2Tez = (project in file("hive2-tez")) settings (
     "org.apache.hadoop" % "hadoop-client" % hadoopVersionForHive2 % "provided" excludeAll (
       ExclusionRule(organization = "com.google.protobuf")
       ),
-    "org.apache.parquet" % "parquet-hadoop" % "1.10.1" excludeAll(
+    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion excludeAll(
       ExclusionRule("org.apache.hadoop", "hadoop-client")
       ),
     "com.google.protobuf" % "protobuf-java" % "2.5.0",
@@ -438,7 +438,7 @@ lazy val standalone = (project in file("standalone"))
     // `standaloneCosmetic` and update it accordingly.
     libraryDependencies ++= scalaCollectionPar(scalaVersion.value) ++ Seq(
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-      "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
+      "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion,
       "com.github.mjakubowski84" %% "parquet4s-core" % parquet4sVersion excludeAll (
         ExclusionRule("org.slf4j", "slf4j-api"),
         ExclusionRule("org.apache.parquet", "parquet-hadoop")
