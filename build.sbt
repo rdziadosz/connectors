@@ -492,7 +492,8 @@ lazy val standalone = (project in file("standalone"))
     // we exclude jars first, and then we shade what is remaining
     assembly / assemblyExcludedJars := {
       val cp = (assembly / fullClasspath).value
-      val allowedPrefixes = Set("META_INF", "io", "json4s", "jackson", "paranamer")
+      val allowedPrefixes = Set("META_INF", "io", "json4s", "jackson", "paranamer", "parquet4s", "parquet",
+        "commons-pool", "shapeless", "audience-annotations", "snappy-java")
       cp.filter { f =>
         !allowedPrefixes.exists(prefix => f.data.getName.startsWith(prefix))
       }
@@ -500,7 +501,13 @@ lazy val standalone = (project in file("standalone"))
     assembly / assemblyShadeRules := Seq(
       ShadeRule.rename("com.fasterxml.jackson.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("com.thoughtworks.paranamer.**" -> "shadedelta.@0").inAll,
-      ShadeRule.rename("org.json4s.**" -> "shadedelta.@0").inAll
+      ShadeRule.rename("org.json4s.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("com.github.mjakubowski84.parquet4s.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("shapeless.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.parquet.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.commons.pool.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.yetus.audience.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.xerial.snappy.**" -> "shadedelta.@0").inAll
     ),
     assembly / assemblyMergeStrategy := {
       // Discard `module-info.class` to fix the `different file contents found` error.
