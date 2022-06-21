@@ -445,7 +445,6 @@ lazy val standalone = (project in file("standalone"))
       "org.slf4j" % "slf4j-api" % "1.7.25",
       "org.slf4j" % "slf4j-log4j12" % "1.7.25",
       "io.delta" % "delta-storage" % deltaStorageVersion,
-
       // Compiler plugins
       // -- Bump up the genjavadoc version explicitly to 0.18 to work with Scala 2.12
       compilerPlugin("com.typesafe.genjavadoc" %% "genjavadoc-plugin" % "0.18" cross CrossVersion.full)
@@ -499,8 +498,7 @@ lazy val standalone = (project in file("standalone"))
       ShadeRule.rename("shapeless.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("org.apache.parquet.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("org.apache.commons.pool.**" -> "shadedelta.@0").inAll,
-      ShadeRule.rename("org.apache.yetus.audience.**" -> "shadedelta.@0").inAll,
-      ShadeRule.rename("org.xerial.snappy.**" -> "shadedelta.@0").inAll
+      ShadeRule.rename("org.apache.yetus.audience.**" -> "shadedelta.@0").inAll
     ),
     assembly / assemblyMergeStrategy := {
       // Discard `module-info.class` to fix the `different file contents found` error.
