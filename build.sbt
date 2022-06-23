@@ -402,12 +402,13 @@ lazy val standaloneCosmetic = project
     Compile / packageBin := (standalone / assembly).value,
     libraryDependencies ++= scalaCollectionPar(scalaVersion.value) ++ Seq(
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-      "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
-      "com.github.mjakubowski84" %% "parquet4s-core" % parquet4sVersion excludeAll (
-        ExclusionRule("org.slf4j", "slf4j-api"),
-        ExclusionRule("org.apache.parquet", "parquet-hadoop")
-      ),
-      "io.delta" % "delta-storage" % deltaStorageVersion
+      "io.delta" % "delta-storage" % deltaStorageVersion,
+      // parquet-hadoop dependencies that are not shaded are added with compile scope.
+      "commons-pool" % "commons-pool" % "1.6",
+      "org.xerial.snappy" % "snappy-java" % "1.1.8",
+      // parquet4s-core dependencies that are not shaded are added with compile scope.
+      "com.chuusai" %% "shapeless" % "2.3.4",
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.3"
     )
   )
 
@@ -438,10 +439,8 @@ lazy val standalone = (project in file("standalone"))
     // `standaloneCosmetic` and update it accordingly.
     libraryDependencies ++= scalaCollectionPar(scalaVersion.value) ++ Seq(
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-      "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
       "com.github.mjakubowski84" %% "parquet4s-core" % parquet4sVersion excludeAll (
-        ExclusionRule("org.slf4j", "slf4j-api"),
-        ExclusionRule("org.apache.parquet", "parquet-hadoop")
+        ExclusionRule("org.slf4j", "slf4j-api")
       ),
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.3",
       "org.json4s" %% "json4s-jackson" % "3.7.0-M11" excludeAll (
@@ -492,7 +491,8 @@ lazy val standalone = (project in file("standalone"))
     // we exclude jars first, and then we shade what is remaining
     assembly / assemblyExcludedJars := {
       val cp = (assembly / fullClasspath).value
-      val allowedPrefixes = Set("META_INF", "io", "json4s", "jackson", "paranamer")
+      val allowedPrefixes = Set("META_INF", "io", "json4s", "jackson", "paranamer",
+        "parquet4s", "parquet-", "audience-annotations")
       cp.filter { f =>
         !allowedPrefixes.exists(prefix => f.data.getName.startsWith(prefix))
       }
@@ -500,7 +500,9 @@ lazy val standalone = (project in file("standalone"))
     assembly / assemblyShadeRules := Seq(
       ShadeRule.rename("com.fasterxml.jackson.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("com.thoughtworks.paranamer.**" -> "shadedelta.@0").inAll,
-      ShadeRule.rename("org.json4s.**" -> "shadedelta.@0").inAll
+      ShadeRule.rename("org.json4s.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.parquet.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.yetus.audience.**" -> "shadedelta.@0").inAll
     ),
     assembly / assemblyMergeStrategy := {
       // Discard `module-info.class` to fix the `different file contents found` error.
