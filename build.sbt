@@ -778,5 +778,6 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
       "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
       "org.awaitility" % "awaitility" % "4.2.0" % "test",
-    )
+    ),
+    Test / logBuffered := false
   )
