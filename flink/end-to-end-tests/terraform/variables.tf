@@ -21,6 +21,12 @@ variable "test_data_bucket_name" {
   type        = string
 }
 
+variable "cloudwatch_group_name" {
+  description = "The name of cloudwatch group where Flink logs are stored."
+  type        = string
+  default     = "e2e-flink-session-cluster"
+}
+
 variable "tags" {
   description = "Common tags assigned to each resource."
   type        = map(string)

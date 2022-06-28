@@ -52,8 +52,16 @@ create_terraform_infrastructure() {
 }
 
 destroy_terraform_infrastructure() {
+  local targets
+  targets="-target=module.networking -target=module.flink-session-cluster"
+  if [ "$PRESERVE_S3_DATA" != "yes" ]; then
+    targets="$targets -target=module.storage"
+  fi
+  if [ "$PRESERVE_CLOUDWATCH_LOGS" != "yes" ]; then
+    targets="$targets -target=module.cloudwatch"
+  fi
   echo "Destroying terraform infrastructure."
-  terraform -chdir="$TERRAFORM_DIR" destroy -auto-approve
+  terraform -chdir="$TERRAFORM_DIR" destroy -auto-approve $targets
 }
 
 export_jobmanager_address() {
@@ -72,6 +80,7 @@ run_end_to_end_tests() {
   echo "JAR_PATH=$JAR_PATH"
   echo "TEST_DATA_LOCAL_PATH=$TEST_DATA_LOCAL_PATH"
   echo "S3_BUCKET_NAME=$S3_BUCKET_NAME"
+  echo "PRESERVE_S3_DATA=$PRESERVE_S3_DATA"
   echo "AWS_REGION=$AWS_REGION"
   echo "JOBMANAGER_HOSTNAME=$JOBMANAGER_HOSTNAME"
   echo "JOBMANAGER_PORT=$JOBMANAGER_PORT"
@@ -80,6 +89,7 @@ run_end_to_end_tests() {
     -DE2E_JAR_PATH="$JAR_PATH" \
     -DE2E_TEST_DATA_LOCAL_PATH="$TEST_DATA_LOCAL_PATH" \
     -DE2E_S3_BUCKET_NAME="$S3_BUCKET_NAME" \
+    -DE2E_PRESERVE_S3_DATA="$PRESERVE_S3_DATA" \
     -DE2E_AWS_REGION="$AWS_REGION" \
     -DE2E_JOBMANAGER_HOSTNAME="$JOBMANAGER_HOSTNAME" \
     -DE2E_JOBMANAGER_PORT="$JOBMANAGER_PORT" \
@@ -106,6 +116,14 @@ main() {
       TEST_DATA_LOCAL_PATH="$2"
       shift # past argument
       shift # past value
+      ;;
+    --preserve-s3-data)
+      PRESERVE_S3_DATA="yes"
+      shift # past argument
+      ;;
+    --preserve-cloudwatch-logs)
+      PRESERVE_CLOUDWATCH_LOGS="yes"
+      shift # past argument
       ;;
     -* | --*)
       echo "Unknown option $1"

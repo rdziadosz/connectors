@@ -106,7 +106,7 @@ resource "aws_ecs_task_definition" "flink_session_cluster" {
   container_definitions    = templatefile("./modules/flink-session-cluster/flink-containers.json", {
     flink_version        = local.flink_version
     region               = var.region
-    cloudwatch_log_group = aws_cloudwatch_log_group.flink_session_cluster.id
+    cloudwatch_log_group = var.cloudwatch_group_id
   })
 }
 
@@ -214,13 +214,6 @@ resource "aws_iam_role_policy" "flink_session_cluster_task" {
     ]
 }
 EOF
-}
-
-/* ========== Cloudwatch ========== */
-
-resource "aws_cloudwatch_log_group" "flink_session_cluster" {
-  name              = "e2e-flink-session-cluster"
-  retention_in_days = 1
 }
 
 /* ========== VPC ========== */

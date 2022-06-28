@@ -25,3 +25,7 @@ variable "subnet2_id" {
 variable "test_data_bucket_name" {
   type = string
 }
+
+variable "cloudwatch_group_id" {
+  type = string
+}

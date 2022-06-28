@@ -88,9 +88,7 @@ class DeltaSinkJobEndToEndTestBase {
     @AfterEach
     void cleanUp() throws Exception {
         cancelJobIfRunning();
-        LOGGER.info("Removing test data in S3 {}", deltaTableLocation);
-        removeS3DirectoryRecursively(bucketName, testDataLocationPrefix);
-        LOGGER.info("Test data removed.");
+        removeTestDataIfNeeded();
     }
 
     private void cancelJobIfRunning() throws Exception {
@@ -101,6 +99,16 @@ class DeltaSinkJobEndToEndTestBase {
         }
     }
 
+    private void removeTestDataIfNeeded() {
+        String preserveS3Data = System.getProperty("E2E_PRESERVE_S3_DATA");
+        if (!"yes".equalsIgnoreCase(preserveS3Data)) {
+            LOGGER.info("Removing test data in S3 {}", deltaTableLocation);
+            removeS3DirectoryRecursively(bucketName, testDataLocationPrefix);
+            LOGGER.info("Test data removed.");
+        } else {
+            LOGGER.info("Skip test data removal.");
+        }
+    }
 
     protected void wait(Duration waitTime) throws Exception {
         Instant waitUntil = Instant.now().plus(waitTime);
