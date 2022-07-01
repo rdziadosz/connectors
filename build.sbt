@@ -43,7 +43,6 @@ lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 val sparkVersion = "2.4.3"
 val hiveDeltaVersion = "0.5.0"
 val parquet4sVersion = "1.9.4"
-val parquetHadoopVersion = "1.12.0"
 val scalaTestVersion = "3.0.8"
 val deltaStorageVersion = "1.2.1"
 // Versions for Hive 3
@@ -167,7 +166,6 @@ lazy val hive = (project in file("hive")) dependsOn(standaloneCosmetic) settings
   // any runtime dependencies.
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" classifier "core",
     "org.apache.hive" % "hive-metastore" % hiveVersion % "provided"
   )
@@ -195,20 +193,16 @@ lazy val hiveTest = (project in file("hive-test")) settings (
   skipReleaseSettings,
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
-    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion % "provided",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" classifier "core" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule(organization = "com.google.protobuf")
     ),
     "org.apache.hive" % "hive-metastore" % hiveVersion % "provided"  excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule("org.apache.hive", "hive-exec")
     ),
     "org.apache.hive" % "hive-cli" % hiveVersion % "test" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("ch.qos.logback", "logback-classic"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule("org.apache.hive", "hive-exec"),
@@ -227,7 +221,6 @@ lazy val hiveMR = (project in file("hive-mr")) dependsOn(hiveTest % "test->test"
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm")
     ),
@@ -236,7 +229,6 @@ lazy val hiveMR = (project in file("hive-mr")) dependsOn(hiveTest % "test->test"
     "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests",
     "org.apache.hadoop" % "hadoop-yarn-server-tests" % hadoopVersion % "test" classifier "tests",
     "org.apache.hive" % "hive-cli" % hiveVersion % "test" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("ch.qos.logback", "logback-classic"),
       ExclusionRule("com.google.guava", "guava"),
       ExclusionRule(organization = "org.eclipse.jetty"),
@@ -254,19 +246,14 @@ lazy val hiveTez = (project in file("hive-tez")) dependsOn(hiveTest % "test->tes
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided" excludeAll (
       ExclusionRule(organization = "com.google.protobuf")
       ),
-    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion excludeAll(
-      ExclusionRule("org.apache.hadoop", "hadoop-client")
-      ),
     "com.google.protobuf" % "protobuf-java" % "2.5.0",
     "org.apache.hive" % "hive-exec" % hiveVersion % "provided" classifier "core" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule(organization = "com.google.protobuf")
     ),
     "org.jodd" % "jodd-core" % "3.5.2",
     "org.apache.hive" % "hive-metastore" % hiveVersion % "provided" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule("org.apache.hive", "hive-exec")
     ),
@@ -275,7 +262,6 @@ lazy val hiveTez = (project in file("hive-tez")) dependsOn(hiveTest % "test->tes
     "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests",
     "org.apache.hadoop" % "hadoop-yarn-server-tests" % hadoopVersion % "test" classifier "tests",
     "org.apache.hive" % "hive-cli" % hiveVersion % "test" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("ch.qos.logback", "logback-classic"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule("org.apache.hive", "hive-exec"),
@@ -304,7 +290,6 @@ lazy val hive2MR = (project in file("hive2-mr")) settings (
   libraryDependencies ++= Seq(
     "org.apache.hadoop" % "hadoop-client" % hadoopVersionForHive2 % "provided",
     "org.apache.hive" % "hive-exec" % hive2Version % "provided" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm")
     ),
@@ -313,7 +298,6 @@ lazy val hive2MR = (project in file("hive2-mr")) settings (
     "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersionForHive2 % "test" classifier "tests",
     "org.apache.hadoop" % "hadoop-yarn-server-tests" % hadoopVersionForHive2 % "test" classifier "tests",
     "org.apache.hive" % "hive-cli" % hive2Version % "test" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("ch.qos.logback", "logback-classic"),
       ExclusionRule("com.google.guava", "guava"),
       ExclusionRule(organization = "org.eclipse.jetty"),
@@ -335,19 +319,14 @@ lazy val hive2Tez = (project in file("hive2-tez")) settings (
     "org.apache.hadoop" % "hadoop-client" % hadoopVersionForHive2 % "provided" excludeAll (
       ExclusionRule(organization = "com.google.protobuf")
       ),
-    "org.apache.parquet" % "parquet-hadoop" % parquetHadoopVersion excludeAll(
-      ExclusionRule("org.apache.hadoop", "hadoop-client")
-      ),
     "com.google.protobuf" % "protobuf-java" % "2.5.0",
     "org.apache.hive" % "hive-exec" % hive2Version % "provided" classifier "core" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule(organization = "com.google.protobuf")
     ),
     "org.jodd" % "jodd-core" % "3.5.2",
     "org.apache.hive" % "hive-metastore" % hive2Version % "provided" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule(organization = "org.eclipse.jetty"),
       ExclusionRule("org.apache.hive", "hive-exec")
     ),
@@ -356,7 +335,6 @@ lazy val hive2Tez = (project in file("hive2-tez")) settings (
     "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersionForHive2 % "test" classifier "tests",
     "org.apache.hadoop" % "hadoop-yarn-server-tests" % hadoopVersionForHive2 % "test" classifier "tests",
     "org.apache.hive" % "hive-cli" % hive2Version % "test" excludeAll(
-      ExclusionRule(organization = "org.apache.parquet"),
       ExclusionRule("ch.qos.logback", "logback-classic"),
       ExclusionRule("org.pentaho", "pentaho-aggdesigner-algorithm"),
       ExclusionRule("org.apache.hive", "hive-exec"),
