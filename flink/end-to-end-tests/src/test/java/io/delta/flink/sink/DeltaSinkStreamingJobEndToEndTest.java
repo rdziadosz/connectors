@@ -81,4 +81,37 @@ class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
             .hasPositiveNumOutputBytesInEachVersion();
     }
 
+    @DisplayName("Connector should create Delta checkpoints")
+    @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
+    @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
+    void shouldCreateCheckpoints(boolean triggerFailover, boolean isPartitioned) throws Exception {
+        // GIVEN
+        String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
+        DeltaLog deltaLog = DeltaLog.forTable(DeltaTestUtils.getHadoopConf(), tablePath);
+        // AND
+        long initialDeltaVersion = deltaLog.snapshot().getVersion();
+        // AND
+        JobParameters jobParameters = JobParametersBuilder.builder()
+            .withName(String.format("[E2E] Sink: should create Delta checkpoints; " +
+                "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
+            .withJarPath(getTestArtifactPath())
+            .withEntryPointClassName(STREAMING_JOB_MAIN_CLASS)
+            .withParallelism(PARALLELISM)
+            .withArgument("delta-table-path", tablePath)
+            .withArgument("is-table-partitioned", isPartitioned)
+            .withArgument("input-records", INPUT_RECORDS)
+            .withArgument("trigger-failover", triggerFailover)
+            .build();
+
+        // WHEN
+        flinkJobClient.run(jobParameters);
+        wait(Duration.ofMinutes(1));
+
+        // THEN
+        assertThat(deltaLog)
+            .sinceVersion(initialDeltaVersion)
+            .hasCheckpointsCount(2)
+            .hasLastCheckpointFile();
+    }
+
 }

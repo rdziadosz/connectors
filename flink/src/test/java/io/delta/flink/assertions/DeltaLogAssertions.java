@@ -19,14 +19,23 @@
 package io.delta.flink.assertions;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.LongStream;
 
 import io.delta.flink.utils.TestParquetReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.delta.standalone.DeltaLog;
 
@@ -122,6 +131,35 @@ public class DeltaLogAssertions {
                 .getOperationMetrics();
             assertTrue(operationMetrics.isPresent());
             return operationMetrics.get();
+        }
+
+        public DeltaLogAsserter hasCheckpointsCount(int expectedCount) throws IOException {
+            Path deltaLogPath = new Path(deltaLog.getPath(), "_delta_log");
+            Set<String> files = getFileList(deltaLogPath);
+            long actualCheckpoints = files.stream()
+                .filter(p -> p.endsWith("checkpoint.parquet")).count();
+            assertEquals(expectedCount, actualCheckpoints);
+            return this;
+        }
+
+        public DeltaLogAsserter hasLastCheckpointFile() throws IOException {
+            Path deltaLogPath = new Path(deltaLog.getPath(), "_delta_log");
+            Set<String> files = getFileList(deltaLogPath);
+            long actualCheckpoints = files.stream()
+                .filter(p -> p.endsWith("_last_checkpoint")).count();
+            assertEquals(1, actualCheckpoints);
+            return this;
+        }
+
+        private Set<String> getFileList(Path path) throws IOException {
+            FileSystem fileSystem = path.getFileSystem(new Configuration());
+            Set<String> files = new HashSet<>();
+            RemoteIterator<LocatedFileStatus> iterator = fileSystem.listFiles(path, true);
+            while (iterator.hasNext()) {
+                LocatedFileStatus file = iterator.next();
+                files.add(file.getPath().toString());
+            }
+            return files;
         }
 
         private void checkPrerequisites() {
