@@ -403,8 +403,6 @@ lazy val standaloneCosmetic = project
     libraryDependencies ++= scalaCollectionPar(scalaVersion.value) ++ Seq(
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
       "io.delta" % "delta-storage" % deltaStorageVersion,
-      // parquet-hadoop dependencies that are not shaded are added with compile scope.
-      "org.xerial.snappy" % "snappy-java" % "1.1.8",
       // parquet4s-core dependencies that are not shaded are added with compile scope.
       "com.chuusai" %% "shapeless" % "2.3.4",
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.3"
