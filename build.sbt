@@ -404,7 +404,6 @@ lazy val standaloneCosmetic = project
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "provided",
       "io.delta" % "delta-storage" % deltaStorageVersion,
       // parquet-hadoop dependencies that are not shaded are added with compile scope.
-      "commons-pool" % "commons-pool" % "1.6",
       "org.xerial.snappy" % "snappy-java" % "1.1.8",
       // parquet4s-core dependencies that are not shaded are added with compile scope.
       "com.chuusai" %% "shapeless" % "2.3.4",
@@ -492,7 +491,7 @@ lazy val standalone = (project in file("standalone"))
     assembly / assemblyExcludedJars := {
       val cp = (assembly / fullClasspath).value
       val allowedPrefixes = Set("META_INF", "io", "json4s", "jackson", "paranamer",
-        "parquet4s", "parquet-", "audience-annotations")
+        "parquet4s", "parquet-", "audience-annotations", "commons-pool")
       cp.filter { f =>
         !allowedPrefixes.exists(prefix => f.data.getName.startsWith(prefix))
       }
@@ -501,6 +500,7 @@ lazy val standalone = (project in file("standalone"))
       ShadeRule.rename("com.fasterxml.jackson.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("com.thoughtworks.paranamer.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("org.json4s.**" -> "shadedelta.@0").inAll,
+      ShadeRule.rename("org.apache.commons.pool.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("org.apache.parquet.**" -> "shadedelta.@0").inAll,
       ShadeRule.rename("org.apache.yetus.audience.**" -> "shadedelta.@0").inAll
     ),
