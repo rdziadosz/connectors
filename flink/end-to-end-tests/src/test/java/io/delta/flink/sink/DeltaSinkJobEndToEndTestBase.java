@@ -124,16 +124,12 @@ class DeltaSinkJobEndToEndTestBase {
         }
     }
 
-    protected String getPartitionedTableInitialStateLocation() {
+    protected String getPartitionedTablePath() {
         return deltaTableLocation + "test-partitioned-delta-table-initial-state";
     }
 
-    protected String getNonPartitionedTableInitialStateLocation() {
+    protected String getNonPartitionedTablePath() {
         return deltaTableLocation + "test-non-partitioned-delta-table-initial-state";
-    }
-
-    protected String getNonPartitionedTableWith1100Records() {
-        return deltaTableLocation + "test-non-partitioned-delta-table_1100_records";
     }
 
 }

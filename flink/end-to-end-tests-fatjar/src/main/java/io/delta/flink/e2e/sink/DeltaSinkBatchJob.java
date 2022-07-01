@@ -22,7 +22,7 @@ import io.delta.flink.sink.internal.DeltaSinkInternal;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import static io.delta.flink.e2e.sink.DeltaSinkTestUtils.createDeltaSink;
+import static io.delta.flink.e2e.sink.DeltaSinkFactory.createDeltaSink;
 
 public class DeltaSinkBatchJob {
 
@@ -44,7 +44,7 @@ public class DeltaSinkBatchJob {
                                    int inputRecordsCount) {
         DeltaSinkInternal<RowData> deltaSink = createDeltaSink(deltaTablePath, isTablePartitioned);
 
-        env.fromCollection(DeltaSinkTestUtils.getTestRowData(inputRecordsCount))
+        env.fromCollection(RowDataListGenerator.getTestRowData(inputRecordsCount))
             .setParallelism(1)
             .sinkTo(deltaSink)
             .setParallelism(3);

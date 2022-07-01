@@ -18,10 +18,7 @@
 
 package io.delta.flink.e2e.sink;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import io.delta.flink.sink.DeltaSink;
@@ -34,35 +31,23 @@ import org.apache.flink.formats.parquet.row.ParquetRowDataBuilder;
 import org.apache.flink.streaming.api.functions.sink.filesystem.bucketassigners.BasePathBucketAssigner;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.OnCheckpointRollingPolicy;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.util.DataFormatConverters;
-import org.apache.flink.table.types.logical.IntType;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.logical.VarCharType;
-import org.apache.flink.table.types.utils.TypeConversions;
-import org.apache.flink.types.Row;
 
-public class DeltaSinkTestUtils {
+class DeltaSinkFactory {
 
-    public static final RowType TEST_ROW_TYPE = new RowType(Arrays.asList(
-        new RowType.RowField("name", new VarCharType(VarCharType.MAX_LENGTH)),
-        new RowType.RowField("surname", new VarCharType(VarCharType.MAX_LENGTH)),
-        new RowType.RowField("age", new IntType())
-    ));
-
-    public static DeltaSinkInternal<RowData> createDeltaSink(String deltaTablePath,
-                                                             boolean isTablePartitioned) {
+    static DeltaSinkInternal<RowData> createDeltaSink(String deltaTablePath,
+                                                      boolean isTablePartitioned) {
         if (isTablePartitioned) {
             DeltaSinkBuilder<RowData> builder = new DeltaSinkBuilder.DefaultDeltaFormatBuilder<>(
                 new Path(deltaTablePath),
-                DeltaSinkTestUtils.getHadoopConf(),
+                DeltaSinkFactory.getHadoopConf(),
                 ParquetRowDataBuilder.createWriterFactory(
-                    DeltaSinkTestUtils.TEST_ROW_TYPE,
-                    DeltaSinkTestUtils.getHadoopConf(),
+                    TestRowTypes.TEST_ROW_TYPE,
+                    DeltaSinkFactory.getHadoopConf(),
                     true // utcTimestamp
                 ),
                 new BasePathBucketAssigner<>(),
                 OnCheckpointRollingPolicy.build(),
-                DeltaSinkTestUtils.TEST_ROW_TYPE,
+                TestRowTypes.TEST_PARTITIONED_ROW_TYPE,
                 false // mergeSchema
             );
             return builder
@@ -72,11 +57,11 @@ public class DeltaSinkTestUtils {
         return DeltaSink
             .forRowData(
                 new Path(deltaTablePath),
-                DeltaSinkTestUtils.getHadoopConf(),
-                DeltaSinkTestUtils.TEST_ROW_TYPE).build();
+                DeltaSinkFactory.getHadoopConf(),
+                TestRowTypes.TEST_ROW_TYPE).build();
     }
 
-    public static org.apache.hadoop.conf.Configuration getHadoopConf() {
+    private static org.apache.hadoop.conf.Configuration getHadoopConf() {
         org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
         conf.set("parquet.compression", "SNAPPY");
         conf.set("io.delta.standalone.PARQUET_DATA_TIME_ZONE_ID", "UTC");
@@ -86,7 +71,7 @@ public class DeltaSinkTestUtils {
         return conf;
     }
 
-    public static DeltaBucketAssigner<RowData> getTestPartitionAssigner() {
+    private static DeltaBucketAssigner<RowData> getTestPartitionAssigner() {
         DeltaPartitionComputer<RowData> partitionComputer =
             (element, context) -> new LinkedHashMap<String, String>() {
                 {
@@ -96,26 +81,5 @@ public class DeltaSinkTestUtils {
             };
         return new DeltaBucketAssigner<>(partitionComputer);
     }
-
-    public static List<RowData> getTestRowData(int num_records) {
-        List<RowData> rows = new ArrayList<>(num_records);
-        for (int i = 0; i < num_records; i++) {
-            Integer v = i;
-            rows.add(
-                CONVERTER.toInternal(
-                    Row.of(
-                        String.valueOf(v),
-                        String.valueOf((v + v)),
-                        v)
-                )
-            );
-        }
-        return rows;
-    }
-
-    public static final DataFormatConverters.DataFormatConverter<RowData, Row> CONVERTER =
-        DataFormatConverters.getConverterForDataType(
-            TypeConversions.fromLogicalToDataType(TEST_ROW_TYPE)
-        );
 
 }

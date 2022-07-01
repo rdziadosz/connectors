@@ -748,12 +748,12 @@ lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fat
     commonSettings,
     releaseSettings,
     libraryDependencies ++= Seq(
-      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
       "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
-      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
-      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
     ),
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard

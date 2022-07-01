@@ -36,7 +36,7 @@ class DeltaSinkBatchJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
     @Test
     void shouldAddNewRecordsToNonPartitionedDeltaTable() throws Exception {
         // GIVEN
-        String tablePath = getNonPartitionedTableInitialStateLocation();
+        String tablePath = getNonPartitionedTablePath();
         DeltaLog deltaLog = DeltaLog.forTable(DeltaTestUtils.getHadoopConf(), tablePath);
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
@@ -52,7 +52,7 @@ class DeltaSinkBatchJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
 
         // WHEN
         flinkJobClient.run(jobParameters);
-        wait(Duration.ofSeconds(60L));
+        wait(Duration.ofMinutes(2));
 
         // THEN
         assertThat(deltaLog)
