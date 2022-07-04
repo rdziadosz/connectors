@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
-package io.delta.flink.jobrunner;
+package io.delta.flink.client.parameters;
 
 import java.util.Map;
 
 public class JobParameters {
 
     private final String jarPath;
+    private final String jarId;
     private final String entryPointClassName;
     private final int parallelism;
     private final Map<String, String> arguments;
 
     JobParameters(String jarPath,
-                  String entryPointClassName,
+                  String jarId, String entryPointClassName,
                   int parallelism,
                   Map<String, String> arguments) {
         this.jarPath = jarPath;
+        this.jarId = jarId;
         this.entryPointClassName = entryPointClassName;
         this.parallelism = parallelism;
         this.arguments = arguments;
@@ -39,6 +41,10 @@ public class JobParameters {
 
     public String getJarPath() {
         return jarPath;
+    }
+
+    public String getJarId() {
+        return jarId;
     }
 
     public String getEntryPointClassName() {
@@ -57,8 +63,9 @@ public class JobParameters {
     public String toString() {
         return "JobParameters{" +
             "jarPath='" + jarPath + '\'' +
+            ", jarId='" + jarId + '\'' +
             ", entryPointClassName='" + entryPointClassName + '\'' +
-            ", parallelism='" + parallelism + '\'' +
+            ", parallelism=" + parallelism +
             ", arguments=" + arguments +
             '}';
     }

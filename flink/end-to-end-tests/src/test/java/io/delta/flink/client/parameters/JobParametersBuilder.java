@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-package io.delta.flink.jobrunner;
+package io.delta.flink.client.parameters;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public final class JobParametersBuilder {
     private String jarPath;
+    private String jarId;
     private String entryPointClassName;
     private int parallelism;
     private final Map<String, String> arguments = new HashMap<>();
@@ -36,6 +37,11 @@ public final class JobParametersBuilder {
 
     public JobParametersBuilder withJarPath(String jarPath) {
         this.jarPath = jarPath;
+        return this;
+    }
+
+    public JobParametersBuilder withJarId(String jarId) {
+        this.jarId = jarId;
         return this;
     }
 
@@ -56,11 +62,11 @@ public final class JobParametersBuilder {
     }
 
     public JobParametersBuilder withName(String jobName) {
-        this.arguments.put("test-name", jobName);
+        this.arguments.put("test-name", String.format("\"%s\"", jobName));
         return this;
     }
 
     public JobParameters build() {
-        return new JobParameters(jarPath, entryPointClassName, parallelism, arguments);
+        return new JobParameters(jarPath, jarId, entryPointClassName, parallelism, arguments);
     }
 }

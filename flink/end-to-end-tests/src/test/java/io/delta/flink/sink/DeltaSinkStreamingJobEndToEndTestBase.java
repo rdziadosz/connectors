@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-package io.delta.flink.jobrunner;
+package io.delta.flink.sink;
 
-public class FlinkClientFactory {
+import io.delta.flink.client.FlinkClient;
+import io.delta.flink.client.FlinkClientFactory;
 
-    public static FlinkClient getRestClient(String host, int port) {
-        return new FlinkRestClient(host, port);
+class DeltaSinkStreamingJobEndToEndTestBase extends DeltaSinkJobEndToEndTestBase {
+    @Override
+    protected FlinkClient getFlinkJobClient() {
+        return FlinkClientFactory.getFlinkRestClient(getJobManagerHost(), getJobManagerPort());
     }
 
 }

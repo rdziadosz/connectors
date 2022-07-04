@@ -22,8 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import io.delta.flink.jobrunner.FlinkClient;
-import io.delta.flink.jobrunner.FlinkClientFactory;
+import io.delta.flink.client.FlinkClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +32,7 @@ import static io.delta.flink.utils.AwsUtils.removeS3DirectoryRecursively;
 import static io.delta.flink.utils.AwsUtils.uploadDirectoryToS3;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class DeltaSinkJobEndToEndTestBase {
+abstract class DeltaSinkJobEndToEndTestBase {
 
     protected static final Logger LOGGER =
         LoggerFactory.getLogger(DeltaSinkJobEndToEndTestBase.class);
@@ -50,19 +49,19 @@ class DeltaSinkJobEndToEndTestBase {
         flinkClient = getFlinkJobClient();
     }
 
-    protected String getTestArtifactPath() {
+    protected static String getTestArtifactPath() {
         String jarPath = System.getProperty("E2E_JAR_PATH");
         assertNotNull(jarPath, "Artifact path has not been specified.");
         return jarPath;
     }
 
-    protected String getTestS3BucketName() {
+    protected static String getTestS3BucketName() {
         String s3BucketName = System.getProperty("E2E_S3_BUCKET_NAME");
         assertNotNull(s3BucketName, "S3 bucket name has not been specified.");
         return s3BucketName;
     }
 
-    protected String getTestDataLocalPath() {
+    protected static String getTestDataLocalPath() {
         String testDataLocalPath = System.getProperty("E2E_TEST_DATA_LOCAL_PATH");
         assertNotNull(testDataLocalPath, "Test data local path has not been specified.");
         return testDataLocalPath;
@@ -76,14 +75,19 @@ class DeltaSinkJobEndToEndTestBase {
         LOGGER.info("Test data uploaded.");
     }
 
-    private FlinkClient getFlinkJobClient() {
+    protected static String getJobManagerHost() {
         String jobmanagerHost = System.getProperty("E2E_JOBMANAGER_HOSTNAME");
-        String jobmanagerPortString = System.getProperty("E2E_JOBMANAGER_PORT");
         assertNotNull(jobmanagerHost, "Flink JobManager hostname has not been specified.");
-        assertNotNull(jobmanagerPortString, "Flink JobManager port has not been specified.");
-        int jobmanagerPort = Integer.parseInt(jobmanagerPortString);
-        return FlinkClientFactory.getRestClient(jobmanagerHost, jobmanagerPort);
+        return jobmanagerHost;
     }
+
+    protected static int getJobManagerPort() {
+        String jobmanagerPortString = System.getProperty("E2E_JOBMANAGER_PORT");
+        assertNotNull(jobmanagerPortString, "Flink JobManager port has not been specified.");
+        return Integer.parseInt(jobmanagerPortString);
+    }
+
+    protected abstract FlinkClient getFlinkJobClient();
 
     @AfterEach
     void cleanUp() throws Exception {

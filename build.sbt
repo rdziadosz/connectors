@@ -16,9 +16,7 @@
 
 // scalastyle:off line.size.limit
 
-import ReleaseTransformations._
-import scala.xml.{Node => XmlNode, NodeSeq => XmlNodeSeq, _}
-import scala.xml.transform._
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 // Disable parallel execution to workaround https://github.com/etsy/sbt-checkstyle-plugin/issues/32
 concurrentRestrictions in Global := {
@@ -778,6 +776,7 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
       "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
       "org.awaitility" % "awaitility" % "4.2.0" % "test",
+      "com.squareup.okhttp3" % "okhttp" % "4.10.0" % "test",
     ),
     Test / logBuffered := false
   )

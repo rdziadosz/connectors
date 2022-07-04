@@ -20,39 +20,51 @@ package io.delta.flink.sink;
 
 import java.time.Duration;
 
-import io.delta.flink.jobrunner.JobParameters;
-import io.delta.flink.jobrunner.JobParametersBuilder;
+import io.delta.flink.client.parameters.JobParameters;
+import io.delta.flink.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
 import io.delta.flink.utils.TestParquetReader;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static io.delta.flink.assertions.DeltaLogAssertions.assertThat;
 
 import io.delta.standalone.DeltaLog;
 
-class DeltaSinkBatchJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
+
+class DeltaSinkBatchJobEndToEndTest extends DeltaSinkBatchJobEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;
+    private static final int PARALLELISM = 3;
+    private static final String BATCH_JOB_MAIN_CLASS =
+        "io.delta.flink.e2e.sink.DeltaSinkBatchJob";
 
-    @Test
-    void shouldAddNewRecordsToNonPartitionedDeltaTable() throws Exception {
+
+    @DisplayName("Connector in batch mode should add new records to the Delta Table")
+    @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
+    @CsvSource(value = {"false,false", "false,true"})
+    void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
         // GIVEN
-        String tablePath = getNonPartitionedTablePath();
+        String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
         DeltaLog deltaLog = DeltaLog.forTable(DeltaTestUtils.getHadoopConf(), tablePath);
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
         // AND
         JobParameters jobParameters = JobParametersBuilder.builder()
-            .withName("[E2E] Sink: add new records in batch mode")
-            .withJarPath(getTestArtifactPath())
-            .withEntryPointClassName("io.delta.flink.e2e.sink.DeltaSinkBatchJob")
+            .withName(String.format("[E2E] Sink: add new records in batch; " +
+                "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
+            .withJarId(jarId)
+            .withEntryPointClassName(BATCH_JOB_MAIN_CLASS)
+            .withParallelism(PARALLELISM)
             .withArgument("delta-table-path", tablePath)
-            .withArgument("is-table-partitioned", false)
+            .withArgument("is-table-partitioned", isPartitioned)
             .withArgument("input-records", INPUT_RECORDS)
+            // .withArgument("trigger-failover", triggerFailover) // FIXME
             .build();
 
         // WHEN
         flinkClient.run(jobParameters);
-        wait(Duration.ofMinutes(2));
+        wait(Duration.ofMinutes(1));
 
         // THEN
         assertThat(deltaLog)

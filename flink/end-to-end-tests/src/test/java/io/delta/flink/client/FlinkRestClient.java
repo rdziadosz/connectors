@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-package io.delta.flink.jobrunner;
+package io.delta.flink.client;
 
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import io.delta.flink.client.parameters.JobParameters;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.client.deployment.StandaloneClusterId;
@@ -33,7 +34,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
-import org.apache.flink.runtime.messages.Acknowledge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,11 +91,11 @@ class FlinkRestClient implements FlinkClient {
     }
 
     @Override
-    public Acknowledge cancel() throws Exception {
+    public void cancel() throws Exception {
         Configuration config = getConfiguration();
         try (RestClusterClient<StandaloneClusterId> client =
                  new RestClusterClient<>(config, StandaloneClusterId.getInstance())) {
-            return client.cancel(jobId).get(60, TimeUnit.SECONDS);
+            client.cancel(jobId).get(60, TimeUnit.SECONDS);
         }
     }
 
@@ -106,21 +106,6 @@ class FlinkRestClient implements FlinkClient {
                  new RestClusterClient<>(config, StandaloneClusterId.getInstance())) {
             return client.getJobStatus(jobId).get(15, TimeUnit.SECONDS);
         }
-    }
-
-    @Override
-    public boolean isFinished() throws Exception {
-        return getStatus().equals(JobStatus.FINISHED);
-    }
-
-    @Override
-    public boolean isFailed() throws Exception {
-        return getStatus().equals(JobStatus.FAILED);
-    }
-
-    @Override
-    public boolean isCanceled() throws Exception {
-        return getStatus().equals(JobStatus.CANCELED);
     }
 
     @Override

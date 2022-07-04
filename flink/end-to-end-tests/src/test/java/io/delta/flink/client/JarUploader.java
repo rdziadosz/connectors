@@ -16,26 +16,12 @@
  * limitations under the License.
  */
 
-package io.delta.flink.jobrunner;
+package io.delta.flink.client;
 
-import org.apache.flink.api.common.JobID;
-import org.apache.flink.api.common.JobStatus;
-import org.apache.flink.runtime.messages.Acknowledge;
+public interface JarUploader {
 
-public interface FlinkClient {
+    String uploadJar(String jarPath) throws Exception;
 
-    void run(JobParameters parameters) throws Exception;
-
-    Acknowledge cancel() throws Exception;
-
-    JobStatus getStatus() throws Exception;
-
-    boolean isFinished() throws Exception;
-
-    boolean isFailed() throws Exception;
-
-    boolean isCanceled() throws Exception;
-
-    JobID getJobId();
+    void deleteJar(String jarId) throws Exception;
 
 }

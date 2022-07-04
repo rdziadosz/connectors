@@ -20,10 +20,11 @@ package io.delta.flink.sink;
 
 import java.time.Duration;
 
-import io.delta.flink.jobrunner.JobParameters;
-import io.delta.flink.jobrunner.JobParametersBuilder;
+import io.delta.flink.client.parameters.JobParameters;
+import io.delta.flink.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
 import io.delta.flink.utils.TestParquetReader;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -37,7 +38,7 @@ import io.delta.standalone.DeltaLog;
 
 @RunWith(Parameterized.class)
 @DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
-class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
+class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkStreamingJobEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;
     private static final int PARALLELISM = 3;
@@ -45,7 +46,7 @@ class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
         "io.delta.flink.e2e.sink.DeltaSinkStreamingJob";
 
 
-    @DisplayName("Connector should add new records to the Delta Table")
+    @DisplayName("Connector in streaming mode should add new records to the Delta Table")
     @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
     @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
     void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
@@ -81,7 +82,8 @@ class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
             .hasPositiveNumOutputBytesInEachVersion();
     }
 
-    @DisplayName("Connector should create Delta checkpoints")
+
+    @DisplayName("Connector in streaming mode should create Delta checkpoints")
     @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
     @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
     void shouldCreateCheckpoints(boolean triggerFailover, boolean isPartitioned) throws Exception {
