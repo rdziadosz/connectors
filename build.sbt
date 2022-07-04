@@ -16,7 +16,9 @@
 
 // scalastyle:off line.size.limit
 
-import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
+import ReleaseTransformations._
+import scala.xml.{Node => XmlNode, NodeSeq => XmlNodeSeq, _}
+import scala.xml.transform._
 
 // Disable parallel execution to workaround https://github.com/etsy/sbt-checkstyle-plugin/issues/32
 concurrentRestrictions in Global := {

@@ -42,13 +42,6 @@ abstract class DeltaSinkJobEndToEndTestBase {
     protected String testDataLocationPrefix;
     protected String deltaTableLocation;
 
-    @BeforeEach
-    void setUp() throws InterruptedException {
-        bucketName = getTestS3BucketName();
-        uploadTestData();
-        flinkClient = getFlinkJobClient();
-    }
-
     protected static String getTestArtifactPath() {
         String jarPath = System.getProperty("E2E_JAR_PATH");
         assertNotNull(jarPath, "Artifact path has not been specified.");
@@ -67,14 +60,6 @@ abstract class DeltaSinkJobEndToEndTestBase {
         return testDataLocalPath;
     }
 
-    private void uploadTestData() throws InterruptedException {
-        testDataLocationPrefix = "flink-connector-e2e-tests/" + UUID.randomUUID();
-        deltaTableLocation = String.format("s3a://%s/%s/", bucketName, testDataLocationPrefix);
-        LOGGER.info("Uploading test data to S3 {}", deltaTableLocation);
-        uploadDirectoryToS3(bucketName, testDataLocationPrefix, getTestDataLocalPath());
-        LOGGER.info("Test data uploaded.");
-    }
-
     protected static String getJobManagerHost() {
         String jobmanagerHost = System.getProperty("E2E_JOBMANAGER_HOSTNAME");
         assertNotNull(jobmanagerHost, "Flink JobManager hostname has not been specified.");
@@ -85,6 +70,21 @@ abstract class DeltaSinkJobEndToEndTestBase {
         String jobmanagerPortString = System.getProperty("E2E_JOBMANAGER_PORT");
         assertNotNull(jobmanagerPortString, "Flink JobManager port has not been specified.");
         return Integer.parseInt(jobmanagerPortString);
+    }
+
+    @BeforeEach
+    void setUp() throws InterruptedException {
+        bucketName = getTestS3BucketName();
+        uploadTestData();
+        flinkClient = getFlinkJobClient();
+    }
+
+    private void uploadTestData() throws InterruptedException {
+        testDataLocationPrefix = "flink-connector-e2e-tests/" + UUID.randomUUID();
+        deltaTableLocation = String.format("s3a://%s/%s/", bucketName, testDataLocationPrefix);
+        LOGGER.info("Uploading test data to S3 {}", deltaTableLocation);
+        uploadDirectoryToS3(bucketName, testDataLocationPrefix, getTestDataLocalPath());
+        LOGGER.info("Test data uploaded.");
     }
 
     protected abstract FlinkClient getFlinkJobClient();

@@ -35,16 +35,16 @@ class DeltaSinkBatchJobEndToEndTestBase extends DeltaSinkJobEndToEndTestBase {
         jarId = uploader.uploadJar(getTestArtifactPath());
     }
 
-    @Override
-    protected FlinkClient getFlinkJobClient() {
-        return FlinkClientFactory.getCustomRestClient(getJobManagerHost(), getJobManagerPort());
-    }
-
     @AfterAll
     static void cleanUpClass() throws Exception {
         if (uploader != null && jarId != null) {
             uploader.deleteJar(jarId);
         }
+    }
+
+    @Override
+    protected FlinkClient getFlinkJobClient() {
+        return FlinkClientFactory.getCustomRestClient(getJobManagerHost(), getJobManagerPort());
     }
 
 }

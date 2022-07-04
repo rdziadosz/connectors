@@ -22,6 +22,7 @@ import io.delta.flink.client.FlinkClient;
 import io.delta.flink.client.FlinkClientFactory;
 
 class DeltaSinkStreamingJobEndToEndTestBase extends DeltaSinkJobEndToEndTestBase {
+
     @Override
     protected FlinkClient getFlinkJobClient() {
         return FlinkClientFactory.getFlinkRestClient(getJobManagerHost(), getJobManagerPort());
