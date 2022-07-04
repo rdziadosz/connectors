@@ -51,7 +51,7 @@ class DeltaSinkBatchJobEndToEndTest extends DeltaSinkJobEndToEndTestBase {
             .build();
 
         // WHEN
-        flinkJobClient.run(jobParameters);
+        flinkClient.run(jobParameters);
         wait(Duration.ofMinutes(2));
 
         // THEN

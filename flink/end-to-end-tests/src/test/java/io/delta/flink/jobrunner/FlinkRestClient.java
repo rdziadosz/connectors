@@ -37,15 +37,15 @@ import org.apache.flink.runtime.messages.Acknowledge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class FlinkJobRestClient implements FlinkJobClient {
+class FlinkRestClient implements FlinkClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlinkJobRestClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlinkRestClient.class);
 
     private final String host;
     private final int port;
     private JobID jobId;
 
-    FlinkJobRestClient(String host, int port) {
+    FlinkRestClient(String host, int port) {
         this.host = host;
         this.port = port;
     }

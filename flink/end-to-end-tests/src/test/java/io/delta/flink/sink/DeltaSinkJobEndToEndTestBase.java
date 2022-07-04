@@ -22,8 +22,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import io.delta.flink.jobrunner.FlinkJobClient;
-import io.delta.flink.jobrunner.FlinkJobClientFactory;
+import io.delta.flink.jobrunner.FlinkClient;
+import io.delta.flink.jobrunner.FlinkClientFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class DeltaSinkJobEndToEndTestBase {
     protected static final Logger LOGGER =
         LoggerFactory.getLogger(DeltaSinkJobEndToEndTestBase.class);
 
-    protected FlinkJobClient flinkJobClient;
+    protected FlinkClient flinkClient;
     protected String bucketName;
     protected String testDataLocationPrefix;
     protected String deltaTableLocation;
@@ -47,7 +47,7 @@ class DeltaSinkJobEndToEndTestBase {
     void setUp() throws InterruptedException {
         bucketName = getTestS3BucketName();
         uploadTestData();
-        flinkJobClient = getFlinkJobClient();
+        flinkClient = getFlinkJobClient();
     }
 
     protected String getTestArtifactPath() {
@@ -76,13 +76,13 @@ class DeltaSinkJobEndToEndTestBase {
         LOGGER.info("Test data uploaded.");
     }
 
-    private FlinkJobClient getFlinkJobClient() {
+    private FlinkClient getFlinkJobClient() {
         String jobmanagerHost = System.getProperty("E2E_JOBMANAGER_HOSTNAME");
         String jobmanagerPortString = System.getProperty("E2E_JOBMANAGER_PORT");
         assertNotNull(jobmanagerHost, "Flink JobManager hostname has not been specified.");
         assertNotNull(jobmanagerPortString, "Flink JobManager port has not been specified.");
         int jobmanagerPort = Integer.parseInt(jobmanagerPortString);
-        return FlinkJobClientFactory.getRestClient(jobmanagerHost, jobmanagerPort);
+        return FlinkClientFactory.getRestClient(jobmanagerHost, jobmanagerPort);
     }
 
     @AfterEach
@@ -92,9 +92,9 @@ class DeltaSinkJobEndToEndTestBase {
     }
 
     private void cancelJobIfRunning() throws Exception {
-        if (flinkJobClient != null && !flinkJobClient.isFinished()) {
-            LOGGER.warn("Cancelling job {}.", flinkJobClient.getJobId());
-            flinkJobClient.cancel();
+        if (flinkClient != null && !flinkClient.isFinished()) {
+            LOGGER.warn("Cancelling job {}.", flinkClient.getJobId());
+            flinkClient.cancel();
             LOGGER.warn("Job cancelled.");
         }
     }
@@ -112,11 +112,11 @@ class DeltaSinkJobEndToEndTestBase {
 
     protected void wait(Duration waitTime) throws Exception {
         Instant waitUntil = Instant.now().plus(waitTime);
-        while (!flinkJobClient.isFinished() && Instant.now().isBefore(waitUntil)) {
-            if (flinkJobClient.isFailed() || flinkJobClient.isCanceled()) {
+        while (!flinkClient.isFinished() && Instant.now().isBefore(waitUntil)) {
+            if (flinkClient.isFailed() || flinkClient.isCanceled()) {
                 Assertions.fail(
                     String.format("Job has failed or has been cancelled; status=%s.",
-                        flinkJobClient.getStatus())
+                        flinkClient.getStatus())
                 );
             }
             Thread.sleep(5_000L);

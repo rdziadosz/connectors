@@ -18,10 +18,24 @@
 
 package io.delta.flink.jobrunner;
 
-public class FlinkJobClientFactory {
+import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.JobStatus;
+import org.apache.flink.runtime.messages.Acknowledge;
 
-    public static FlinkJobClient getRestClient(String host, int port) {
-        return new FlinkJobRestClient(host, port);
-    }
+public interface FlinkClient {
+
+    void run(JobParameters parameters) throws Exception;
+
+    Acknowledge cancel() throws Exception;
+
+    JobStatus getStatus() throws Exception;
+
+    boolean isFinished() throws Exception;
+
+    boolean isFailed() throws Exception;
+
+    boolean isCanceled() throws Exception;
+
+    JobID getJobId();
 
 }
