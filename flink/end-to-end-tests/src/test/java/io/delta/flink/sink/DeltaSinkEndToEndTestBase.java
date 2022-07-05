@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import io.delta.flink.client.FlinkClient;
+import org.apache.flink.api.common.JobID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,51 +33,47 @@ import static io.delta.flink.utils.AwsUtils.removeS3DirectoryRecursively;
 import static io.delta.flink.utils.AwsUtils.uploadDirectoryToS3;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-abstract class DeltaSinkJobEndToEndTestBase {
+abstract class DeltaSinkEndToEndTestBase {
 
     protected static final Logger LOGGER =
-        LoggerFactory.getLogger(DeltaSinkJobEndToEndTestBase.class);
+        LoggerFactory.getLogger(DeltaSinkEndToEndTestBase.class);
 
-    protected FlinkClient flinkClient;
     protected String bucketName;
     protected String testDataLocationPrefix;
     protected String deltaTableLocation;
+    protected JobID jobID;
 
     protected static String getTestArtifactPath() {
-        String jarPath = System.getProperty("E2E_JAR_PATH");
-        assertNotNull(jarPath, "Artifact path has not been specified.");
-        return jarPath;
+        return getEnvProperty("E2E_JAR_PATH");
     }
 
     protected static String getTestS3BucketName() {
-        String s3BucketName = System.getProperty("E2E_S3_BUCKET_NAME");
-        assertNotNull(s3BucketName, "S3 bucket name has not been specified.");
-        return s3BucketName;
+        return getEnvProperty("E2E_S3_BUCKET_NAME");
     }
 
     protected static String getTestDataLocalPath() {
-        String testDataLocalPath = System.getProperty("E2E_TEST_DATA_LOCAL_PATH");
-        assertNotNull(testDataLocalPath, "Test data local path has not been specified.");
-        return testDataLocalPath;
+        return getEnvProperty("E2E_TEST_DATA_LOCAL_PATH");
     }
 
     protected static String getJobManagerHost() {
-        String jobmanagerHost = System.getProperty("E2E_JOBMANAGER_HOSTNAME");
-        assertNotNull(jobmanagerHost, "Flink JobManager hostname has not been specified.");
-        return jobmanagerHost;
+        return getEnvProperty("E2E_JOBMANAGER_HOSTNAME");
     }
 
     protected static int getJobManagerPort() {
-        String jobmanagerPortString = System.getProperty("E2E_JOBMANAGER_PORT");
-        assertNotNull(jobmanagerPortString, "Flink JobManager port has not been specified.");
+        String jobmanagerPortString = getEnvProperty("E2E_JOBMANAGER_PORT");
         return Integer.parseInt(jobmanagerPortString);
+    }
+
+    private static String getEnvProperty(String name) {
+        String property = System.getProperty(name);
+        assertNotNull(property, name + " environment property has not been specified.");
+        return property;
     }
 
     @BeforeEach
     void setUp() throws InterruptedException {
         bucketName = getTestS3BucketName();
         uploadTestData();
-        flinkClient = getFlinkJobClient();
     }
 
     private void uploadTestData() throws InterruptedException {
@@ -87,7 +84,7 @@ abstract class DeltaSinkJobEndToEndTestBase {
         LOGGER.info("Test data uploaded.");
     }
 
-    protected abstract FlinkClient getFlinkJobClient();
+    protected abstract FlinkClient getFlinkClient();
 
     @AfterEach
     void cleanUp() throws Exception {
@@ -96,9 +93,10 @@ abstract class DeltaSinkJobEndToEndTestBase {
     }
 
     private void cancelJobIfRunning() throws Exception {
-        if (flinkClient != null && !flinkClient.isFinished()) {
-            LOGGER.warn("Cancelling job {}.", flinkClient.getJobId());
-            flinkClient.cancel();
+        if (getFlinkClient() != null && jobID != null && !getFlinkClient().isFinished(jobID)) {
+            LOGGER.warn("Cancelling job {}.", jobID);
+            getFlinkClient().cancel(jobID);
+            jobID = null;
             LOGGER.warn("Job cancelled.");
         }
     }
@@ -116,11 +114,11 @@ abstract class DeltaSinkJobEndToEndTestBase {
 
     protected void wait(Duration waitTime) throws Exception {
         Instant waitUntil = Instant.now().plus(waitTime);
-        while (!flinkClient.isFinished() && Instant.now().isBefore(waitUntil)) {
-            if (flinkClient.isFailed() || flinkClient.isCanceled()) {
+        while (!getFlinkClient().isFinished(jobID) && Instant.now().isBefore(waitUntil)) {
+            if (getFlinkClient().isFailed(jobID) || getFlinkClient().isCanceled(jobID)) {
                 Assertions.fail(
                     String.format("Job has failed or has been cancelled; status=%s.",
-                        flinkClient.getStatus())
+                        getFlinkClient().getStatus(jobID))
                 );
             }
             Thread.sleep(5_000L);

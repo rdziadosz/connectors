@@ -24,24 +24,27 @@ import org.apache.flink.api.common.JobStatus;
 
 public interface FlinkClient {
 
-    void run(JobParameters parameters) throws Exception;
+    String uploadJar(String jarPath) throws Exception;
 
-    void cancel() throws Exception;
+    void deleteJar(String jarId) throws Exception;
 
-    JobStatus getStatus() throws Exception;
+    JobID run(JobParameters parameters) throws Exception;
 
-    default boolean isFinished() throws Exception {
-        return getStatus().equals(JobStatus.FINISHED);
+    void cancel(JobID jobID) throws Exception;
+
+    JobStatus getStatus(JobID jobID) throws Exception;
+
+    default boolean isFinished(JobID jobID) throws Exception {
+        return getStatus(jobID).equals(JobStatus.FINISHED);
     }
 
-    default boolean isFailed() throws Exception {
-        return getStatus().equals(JobStatus.FAILED);
+    default boolean isFailed(JobID jobID) throws Exception {
+        return getStatus(jobID).equals(JobStatus.FAILED);
     }
 
-    default boolean isCanceled() throws Exception {
-        return getStatus().equals(JobStatus.CANCELED);
+    default boolean isCanceled(JobID jobID) throws Exception {
+        return getStatus(jobID).equals(JobStatus.CANCELED);
     }
 
-    JobID getJobId();
 
 }

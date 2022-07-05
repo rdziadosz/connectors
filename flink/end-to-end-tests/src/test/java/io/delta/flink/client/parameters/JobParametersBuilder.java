@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class JobParametersBuilder {
+
     private String jarPath;
     private String jarId;
     private String entryPointClassName;
@@ -62,8 +63,23 @@ public final class JobParametersBuilder {
     }
 
     public JobParametersBuilder withName(String jobName) {
-        this.arguments.put("test-name", String.format("\"%s\"", jobName));
-        return this;
+        return withArgument("test-name", String.format("\"%s\"", jobName));
+    }
+
+    public JobParametersBuilder withDeltaTablePath(String deltaTablePath) {
+        return withArgument("delta-table-path", deltaTablePath);
+    }
+
+    public JobParametersBuilder withTablePartitioned(boolean isPartitioned) {
+        return withArgument("is-table-partitioned", isPartitioned);
+    }
+
+    public JobParametersBuilder withInputRecords(int inputRecords) {
+        return withArgument("input-records", inputRecords);
+    }
+
+    public JobParametersBuilder withTriggerFailover(boolean triggerFailover) {
+        return withArgument("trigger-failover", triggerFailover);
     }
 
     public JobParameters build() {

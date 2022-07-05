@@ -37,13 +37,15 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Wrapper on {@link RestClusterClient}.
+ */
 class FlinkRestClient implements FlinkClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlinkRestClient.class);
 
     private final String host;
     private final int port;
-    private JobID jobId;
 
     FlinkRestClient(String host, int port) {
         this.host = host;
@@ -58,7 +60,17 @@ class FlinkRestClient implements FlinkClient {
     }
 
     @Override
-    public void run(JobParameters parameters) throws Exception {
+    public String uploadJar(String jarPath) throws Exception {
+        throw new UnsupportedOperationException("JAR upload not supported.");
+    }
+
+    @Override
+    public void deleteJar(String jarId) throws Exception {
+        throw new UnsupportedOperationException("JAR deleting not supported.");
+    }
+
+    @Override
+    public JobID run(JobParameters parameters) throws Exception {
         Configuration config = getConfiguration();
         String[] args = getArguments(parameters.getArguments());
 
@@ -79,8 +91,9 @@ class FlinkRestClient implements FlinkClient {
         try (RestClusterClient<StandaloneClusterId> client =
                  new RestClusterClient<>(config, StandaloneClusterId.getInstance())) {
             LOGGER.info("Submitting flink job; parameters: {}", parameters);
-            jobId = client.submitJob(jobGraph).get(60, TimeUnit.SECONDS);
+            JobID jobId = client.submitJob(jobGraph).get(60, TimeUnit.SECONDS);
             LOGGER.info("Job submitted; jobId={}.", jobId);
+            return jobId;
         }
     }
 
@@ -91,26 +104,21 @@ class FlinkRestClient implements FlinkClient {
     }
 
     @Override
-    public void cancel() throws Exception {
+    public void cancel(JobID jobID) throws Exception {
         Configuration config = getConfiguration();
         try (RestClusterClient<StandaloneClusterId> client =
                  new RestClusterClient<>(config, StandaloneClusterId.getInstance())) {
-            client.cancel(jobId).get(60, TimeUnit.SECONDS);
+            client.cancel(jobID).get(60, TimeUnit.SECONDS);
         }
     }
 
     @Override
-    public JobStatus getStatus() throws Exception {
+    public JobStatus getStatus(JobID jobID) throws Exception {
         Configuration config = getConfiguration();
         try (RestClusterClient<StandaloneClusterId> client =
                  new RestClusterClient<>(config, StandaloneClusterId.getInstance())) {
-            return client.getJobStatus(jobId).get(15, TimeUnit.SECONDS);
+            return client.getJobStatus(jobID).get(15, TimeUnit.SECONDS);
         }
-    }
-
-    @Override
-    public JobID getJobId() {
-        return jobId;
     }
 
 }

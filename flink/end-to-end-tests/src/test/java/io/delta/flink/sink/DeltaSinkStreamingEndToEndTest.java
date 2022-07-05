@@ -24,7 +24,6 @@ import io.delta.flink.client.parameters.JobParameters;
 import io.delta.flink.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
 import io.delta.flink.utils.TestParquetReader;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -38,12 +37,11 @@ import io.delta.standalone.DeltaLog;
 
 @RunWith(Parameterized.class)
 @DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
-class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkStreamingJobEndToEndTestBase {
+class DeltaSinkStreamingEndToEndTest extends DeltaSinkStreamingEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;
     private static final int PARALLELISM = 3;
-    private static final String STREAMING_JOB_MAIN_CLASS =
-        "io.delta.flink.e2e.sink.DeltaSinkStreamingJob";
+    private static final String JOB_MAIN_CLASS = "io.delta.flink.e2e.sink.DeltaSinkStreamingJob";
 
 
     @DisplayName("Connector in streaming mode should add new records to the Delta Table")
@@ -61,16 +59,16 @@ class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkStreamingJobEndToEndTes
             .withName(String.format("[E2E] Sink: add new records in streaming; " +
                 "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
             .withJarPath(getTestArtifactPath())
-            .withEntryPointClassName(STREAMING_JOB_MAIN_CLASS)
+            .withEntryPointClassName(JOB_MAIN_CLASS)
             .withParallelism(PARALLELISM)
-            .withArgument("delta-table-path", tablePath)
-            .withArgument("is-table-partitioned", isPartitioned)
-            .withArgument("input-records", INPUT_RECORDS)
-            .withArgument("trigger-failover", triggerFailover)
+            .withDeltaTablePath(tablePath)
+            .withTablePartitioned(isPartitioned)
+            .withInputRecords(INPUT_RECORDS)
+            .withTriggerFailover(triggerFailover)
             .build();
 
         // WHEN
-        flinkClient.run(jobParameters);
+        jobID = flinkClient.run(jobParameters);
         wait(Duration.ofMinutes(1));
 
         // THEN
@@ -97,16 +95,16 @@ class DeltaSinkStreamingJobEndToEndTest extends DeltaSinkStreamingJobEndToEndTes
             .withName(String.format("[E2E] Sink: should create Delta checkpoints; " +
                 "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
             .withJarPath(getTestArtifactPath())
-            .withEntryPointClassName(STREAMING_JOB_MAIN_CLASS)
+            .withEntryPointClassName(JOB_MAIN_CLASS)
             .withParallelism(PARALLELISM)
-            .withArgument("delta-table-path", tablePath)
-            .withArgument("is-table-partitioned", isPartitioned)
-            .withArgument("input-records", INPUT_RECORDS)
-            .withArgument("trigger-failover", triggerFailover)
+            .withDeltaTablePath(tablePath)
+            .withTablePartitioned(isPartitioned)
+            .withInputRecords(INPUT_RECORDS)
+            .withTriggerFailover(triggerFailover)
             .build();
 
         // WHEN
-        flinkClient.run(jobParameters);
+        jobID = flinkClient.run(jobParameters);
         wait(Duration.ofMinutes(1));
 
         // THEN

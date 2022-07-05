@@ -16,12 +16,25 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client;
+package io.delta.flink.sink;
 
-public interface JarUploader {
+import io.delta.flink.client.FlinkClient;
+import io.delta.flink.client.FlinkClientFactory;
+import org.junit.jupiter.api.BeforeAll;
 
-    String uploadJar(String jarPath) throws Exception;
+class DeltaSinkStreamingEndToEndTestBase extends DeltaSinkEndToEndTestBase {
 
-    void deleteJar(String jarId) throws Exception;
+    protected static FlinkClient flinkClient;
+
+    @BeforeAll
+    static void setUpClass() {
+        flinkClient = FlinkClientFactory.getFlinkRestClient(
+            getJobManagerHost(), getJobManagerPort());
+    }
+
+    @Override
+    protected FlinkClient getFlinkClient() {
+        return flinkClient;
+    }
 
 }

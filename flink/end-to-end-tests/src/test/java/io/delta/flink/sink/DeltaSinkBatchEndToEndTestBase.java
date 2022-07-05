@@ -20,31 +20,31 @@ package io.delta.flink.sink;
 
 import io.delta.flink.client.FlinkClient;
 import io.delta.flink.client.FlinkClientFactory;
-import io.delta.flink.client.JarUploader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
-class DeltaSinkBatchJobEndToEndTestBase extends DeltaSinkJobEndToEndTestBase {
+class DeltaSinkBatchEndToEndTestBase extends DeltaSinkEndToEndTestBase {
 
-    private static JarUploader uploader;
+    protected static FlinkClient flinkClient;
     protected static String jarId;
 
     @BeforeAll
     static void setUpClass() throws Exception {
-        uploader = FlinkClientFactory.getRestJarUploader(getJobManagerHost(), getJobManagerPort());
-        jarId = uploader.uploadJar(getTestArtifactPath());
+        flinkClient = FlinkClientFactory.getCustomRestClient(
+            getJobManagerHost(), getJobManagerPort());
+        jarId = flinkClient.uploadJar(getTestArtifactPath());
     }
 
     @AfterAll
     static void cleanUpClass() throws Exception {
-        if (uploader != null && jarId != null) {
-            uploader.deleteJar(jarId);
+        if (flinkClient != null && jarId != null) {
+            flinkClient.deleteJar(jarId);
         }
     }
 
     @Override
-    protected FlinkClient getFlinkJobClient() {
-        return FlinkClientFactory.getCustomRestClient(getJobManagerHost(), getJobManagerPort());
+    protected FlinkClient getFlinkClient() {
+        return flinkClient;
     }
 
 }

@@ -32,12 +32,11 @@ import static io.delta.flink.assertions.DeltaLogAssertions.assertThat;
 import io.delta.standalone.DeltaLog;
 
 
-class DeltaSinkBatchJobEndToEndTest extends DeltaSinkBatchJobEndToEndTestBase {
+class DeltaSinkBatchEndToEndTest extends DeltaSinkBatchEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;
     private static final int PARALLELISM = 3;
-    private static final String BATCH_JOB_MAIN_CLASS =
-        "io.delta.flink.e2e.sink.DeltaSinkBatchJob";
+    private static final String JOB_MAIN_CLASS = "io.delta.flink.e2e.sink.DeltaSinkBatchJob";
 
 
     @DisplayName("Connector in batch mode should add new records to the Delta Table")
@@ -54,16 +53,16 @@ class DeltaSinkBatchJobEndToEndTest extends DeltaSinkBatchJobEndToEndTestBase {
             .withName(String.format("[E2E] Sink: add new records in batch; " +
                 "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
             .withJarId(jarId)
-            .withEntryPointClassName(BATCH_JOB_MAIN_CLASS)
+            .withEntryPointClassName(JOB_MAIN_CLASS)
             .withParallelism(PARALLELISM)
-            .withArgument("delta-table-path", tablePath)
-            .withArgument("is-table-partitioned", isPartitioned)
-            .withArgument("input-records", INPUT_RECORDS)
+            .withDeltaTablePath(tablePath)
+            .withTablePartitioned(isPartitioned)
+            .withInputRecords(INPUT_RECORDS)
             // .withArgument("trigger-failover", triggerFailover) // FIXME
             .build();
 
         // WHEN
-        flinkClient.run(jobParameters);
+        jobID = flinkClient.run(jobParameters);
         wait(Duration.ofMinutes(1));
 
         // THEN

@@ -28,8 +28,4 @@ public class FlinkClientFactory {
         return new CustomRestClient(host, port);
     }
 
-    public static JarUploader getRestJarUploader(String host, int port) {
-        return new RestJarUploader(host, port);
-    }
-
 }

@@ -33,10 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Each of the source operators outputs the given number of records in given number of checkpoints.
- * In other words, in checkpoint  numberOfRecords / recordsPerCheckpoint records are emitter per
- * operator. When all records are emitted, the source waits for two more checkpoints until it
- * finishes.
+ * Each of the source operators outputs given number of records in given number of checkpoints.
+ * In other words, between two consecutive checkpoints numberOfRecords / recordsPerCheckpoint
+ * records are emitted per operator. When all records are emitted, the source waits for one more
+ * checkpoint until it finishes.
  */
 public class CheckpointCountingSource
     extends RichParallelSourceFunction<RowData>
