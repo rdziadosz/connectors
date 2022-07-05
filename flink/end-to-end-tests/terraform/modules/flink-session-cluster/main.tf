@@ -1,8 +1,22 @@
 locals {
-  flink_session_cluster_name = "flink-session-cluster"
-  jobmanager_container_name  = "jobmanager"
-  jobmanager_rest_port       = 8081
-  flink_version              = "1.13.0"
+  flink_session_cluster_name   = "flink-session-cluster"
+  jobmanager_container_name    = "jobmanager"
+  jobmanager_rest_port         = 8081
+  flink_version                = "1.13.0"
+  flink_jobmanager_properties  = <<EOT
+    jobmanager.rpc.address: jobmanager
+    jobmanager.memory.process.size: 3g
+    fs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider
+    classloader.check-leaked-classloader: false
+    EOT
+  flink_taskmanager_properties = <<EOT
+    jobmanager.rpc.address: jobmanager
+    taskmanager.numberOfTaskSlots: 4
+    taskmanager.memory.process.size: 10g
+    taskmanager.memory.jvm-metaspace.size: 1g
+    fs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider
+    classloader.check-leaked-classloader: false
+    EOT
 }
 
 /* ========== EC2 ========== */
@@ -104,9 +118,12 @@ resource "aws_ecs_task_definition" "flink_session_cluster" {
   execution_role_arn       = aws_iam_role.flink_session_cluster_execution.arn
   task_role_arn            = aws_iam_role.flink_session_cluster_task.arn
   container_definitions    = templatefile("./modules/flink-session-cluster/flink-containers.json", {
-    flink_version        = local.flink_version
-    region               = var.region
-    cloudwatch_log_group = var.cloudwatch_group_id
+    flink_version          = local.flink_version
+    region                 = var.region
+    cloudwatch_log_group   = var.cloudwatch_group_id
+    // join+split: Convert a multiline string to a regular string
+    taskmanager_properties = join("\\n", split("\n", local.flink_taskmanager_properties))
+    jobmanager_properties  = join("\\n", split("\n", local.flink_jobmanager_properties))
   })
 }
 

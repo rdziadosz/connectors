@@ -17,7 +17,7 @@
     "environment": [
       {
         "name": "FLINK_PROPERTIES",
-        "value": "jobmanager.rpc.address: jobmanager\njobmanager.memory.process.size: 3g\nfs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider\n"
+        "value": "${jobmanager_properties}"
       },
       {
         "name": "ENABLE_BUILT_IN_PLUGINS",
@@ -45,7 +45,7 @@
     "environment": [
       {
         "name": "FLINK_PROPERTIES",
-        "value": "jobmanager.rpc.address: jobmanager\ntaskmanager.numberOfTaskSlots: 4\ntaskmanager.memory.process.size: 10g\ntaskmanager.memory.jvm-metaspace.size: 1g\nfs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider\n"
+        "value": "${taskmanager_properties}"
       },
       {
         "name": "ENABLE_BUILT_IN_PLUGINS",
