@@ -58,7 +58,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaSinkStreamingEndToEndTestBase 
         JobParameters jobParameters = JobParametersBuilder.builder()
             .withName(String.format("[E2E] Sink: add new records in streaming; " +
                 "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
-            .withJarPath(getTestArtifactPath())
+            .withJarId(jarId)
             .withEntryPointClassName(JOB_MAIN_CLASS)
             .withParallelism(PARALLELISM)
             .withDeltaTablePath(tablePath)
@@ -94,7 +94,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaSinkStreamingEndToEndTestBase 
         JobParameters jobParameters = JobParametersBuilder.builder()
             .withName(String.format("[E2E] Sink: should create Delta checkpoints; " +
                 "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
-            .withJarPath(getTestArtifactPath())
+            .withJarId(jarId)
             .withEntryPointClassName(JOB_MAIN_CLASS)
             .withParallelism(PARALLELISM)
             .withDeltaTablePath(tablePath)
