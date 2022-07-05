@@ -41,7 +41,7 @@ class DeltaSinkBatchEndToEndTest extends DeltaSinkBatchEndToEndTestBase {
 
     @DisplayName("Connector in batch mode should add new records to the Delta Table")
     @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
-    @CsvSource(value = {"false,false", "false,true"})
+    @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
     void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
         // GIVEN
         String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
@@ -58,12 +58,12 @@ class DeltaSinkBatchEndToEndTest extends DeltaSinkBatchEndToEndTestBase {
             .withDeltaTablePath(tablePath)
             .withTablePartitioned(isPartitioned)
             .withInputRecords(INPUT_RECORDS)
-            // .withArgument("trigger-failover", triggerFailover) // FIXME
+            .withTriggerFailover(triggerFailover)
             .build();
 
         // WHEN
         jobID = flinkClient.run(jobParameters);
-        wait(Duration.ofMinutes(1));
+        wait(Duration.ofMinutes(3));
 
         // THEN
         assertThat(deltaLog)

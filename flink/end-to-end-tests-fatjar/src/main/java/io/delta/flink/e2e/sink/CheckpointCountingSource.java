@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * records are emitted per operator. When all records are emitted, the source waits for one more
  * checkpoint until it finishes.
  */
-public class CheckpointCountingSource
+class CheckpointCountingSource
     extends RichParallelSourceFunction<RowData>
     implements CheckpointListener, CheckpointedFunction {
 

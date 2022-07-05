@@ -69,7 +69,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaSinkStreamingEndToEndTestBase 
 
         // WHEN
         jobID = flinkClient.run(jobParameters);
-        wait(Duration.ofMinutes(1));
+        wait(Duration.ofMinutes(3));
 
         // THEN
         assertThat(deltaLog)
@@ -105,7 +105,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaSinkStreamingEndToEndTestBase 
 
         // WHEN
         jobID = flinkClient.run(jobParameters);
-        wait(Duration.ofMinutes(1));
+        wait(Duration.ofMinutes(3));
 
         // THEN
         assertThat(deltaLog)

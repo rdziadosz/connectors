@@ -124,6 +124,8 @@ abstract class DeltaSinkEndToEndTestBase {
             Thread.sleep(5_000L);
             LOGGER.warn("Waiting until {}", waitUntil);
         }
+        Assertions.assertTrue(getFlinkClient().isFinished(jobID),
+            "Job has not finished in a timely manner.");
     }
 
     protected String getPartitionedTablePath() {

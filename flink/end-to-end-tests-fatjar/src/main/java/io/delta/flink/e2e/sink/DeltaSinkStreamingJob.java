@@ -18,7 +18,6 @@
 
 package io.delta.flink.e2e.sink;
 
-import io.delta.flink.sink.internal.DeltaSinkInternal;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration;
@@ -26,7 +25,6 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
 import static io.delta.flink.e2e.sink.DeltaSinkFactory.createDeltaSink;
 
 public class DeltaSinkStreamingJob {
@@ -62,11 +60,9 @@ public class DeltaSinkStreamingJob {
         env.setRestartStrategy(restartStrategyConfiguration);
         env.disableOperatorChaining();
 
-        DeltaSinkInternal<RowData> deltaSink = createDeltaSink(deltaTablePath, isTablePartitioned);
-
         env.addSource(new CheckpointCountingSource(inputRecordsCount, EXPECTED_CHECKPOINTS,
                 triggerFailover))
-            .sinkTo(deltaSink);
+            .sinkTo(createDeltaSink(deltaTablePath, isTablePartitioned));
     }
 
 }
