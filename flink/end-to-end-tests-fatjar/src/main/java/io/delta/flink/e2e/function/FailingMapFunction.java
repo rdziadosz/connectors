@@ -1,4 +1,4 @@
-package io.delta.flink.e2e.utils;
+package io.delta.flink.e2e.function;
 
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.table.data.RowData;

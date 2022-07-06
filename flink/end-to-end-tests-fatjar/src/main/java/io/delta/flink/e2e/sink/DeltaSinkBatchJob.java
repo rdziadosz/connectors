@@ -18,9 +18,15 @@
 
 package io.delta.flink.e2e.sink;
 
-import io.delta.flink.e2e.utils.FailingMapFunction;
-import io.delta.flink.e2e.utils.IdentityMapFunction;
-import io.delta.flink.sink.internal.DeltaSinkInternal;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import io.delta.flink.e2e.datagenerator.NonPartitionedTestDataGenerator;
+import io.delta.flink.e2e.datagenerator.PartitionedTestDataGenerator;
+import io.delta.flink.e2e.datagenerator.TestDataGenerator;
+import io.delta.flink.e2e.function.FailingMapFunction;
+import io.delta.flink.e2e.function.IdentityMapFunction;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration;
@@ -58,15 +64,23 @@ public class DeltaSinkBatchJob {
                                     boolean isTablePartitioned,
                                     int inputRecordsCount,
                                     boolean triggerFailover) {
-        DeltaSinkInternal<RowData> deltaSink = createDeltaSink(deltaTablePath, isTablePartitioned);
-
-        env.fromCollection(RowDataListGenerator.getTestRowData(inputRecordsCount))
+        env.fromCollection(getTestData(inputRecordsCount, isTablePartitioned))
             .setParallelism(1)
-            .map(triggerFailover ?
-                new FailingMapFunction(inputRecordsCount / env.getParallelism() / 2)
+            .map(triggerFailover
+                ? new FailingMapFunction(inputRecordsCount / env.getParallelism() / 2)
                 : new IdentityMapFunction()
             )
-            .sinkTo(deltaSink);
+            .sinkTo(createDeltaSink(deltaTablePath, isTablePartitioned));
+    }
+
+    private static List<RowData> getTestData(int inputRecordsCount, boolean isTablePartitioned) {
+        TestDataGenerator testDataGenerator = isTablePartitioned
+            ? new PartitionedTestDataGenerator()
+            : new NonPartitionedTestDataGenerator();
+
+        return IntStream.range(0, inputRecordsCount).boxed()
+            .map(testDataGenerator::get)
+            .collect(Collectors.toList());
     }
 
 }

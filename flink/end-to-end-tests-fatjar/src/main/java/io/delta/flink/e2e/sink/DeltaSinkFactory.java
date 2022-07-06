@@ -18,18 +18,10 @@
 
 package io.delta.flink.e2e.sink;
 
-import java.util.LinkedHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-
+import io.delta.flink.e2e.datagenerator.TestRowTypes;
 import io.delta.flink.sink.DeltaSink;
-import io.delta.flink.sink.internal.DeltaBucketAssigner;
-import io.delta.flink.sink.internal.DeltaPartitionComputer;
-import io.delta.flink.sink.internal.DeltaSinkBuilder;
 import io.delta.flink.sink.internal.DeltaSinkInternal;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.formats.parquet.row.ParquetRowDataBuilder;
-import org.apache.flink.streaming.api.functions.sink.filesystem.bucketassigners.BasePathBucketAssigner;
-import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.OnCheckpointRollingPolicy;
 import org.apache.flink.table.data.RowData;
 
 class DeltaSinkFactory {
@@ -37,28 +29,21 @@ class DeltaSinkFactory {
     static DeltaSinkInternal<RowData> createDeltaSink(String deltaTablePath,
                                                       boolean isTablePartitioned) {
         if (isTablePartitioned) {
-            DeltaSinkBuilder<RowData> builder = new DeltaSinkBuilder.DefaultDeltaFormatBuilder<>(
-                new Path(deltaTablePath),
-                DeltaSinkFactory.getHadoopConf(),
-                ParquetRowDataBuilder.createWriterFactory(
-                    TestRowTypes.TEST_ROW_TYPE,
-                    DeltaSinkFactory.getHadoopConf(),
-                    true // utcTimestamp
-                ),
-                new BasePathBucketAssigner<>(),
-                OnCheckpointRollingPolicy.build(),
-                TestRowTypes.TEST_PARTITIONED_ROW_TYPE,
-                false // mergeSchema
-            );
-            return builder
-                .withBucketAssigner(getTestPartitionAssigner())
+            return DeltaSink.forRowData(
+                    new Path(deltaTablePath),
+                    getHadoopConf(),
+                    TestRowTypes.TEST_PARTITIONED_ROW_TYPE
+                )
+                .withPartitionColumns("col1", "col2")
+                .build();
+        } else {
+            return DeltaSink.forRowData(
+                    new Path(deltaTablePath),
+                    getHadoopConf(),
+                    TestRowTypes.TEST_ROW_TYPE
+                )
                 .build();
         }
-        return DeltaSink
-            .forRowData(
-                new Path(deltaTablePath),
-                DeltaSinkFactory.getHadoopConf(),
-                TestRowTypes.TEST_ROW_TYPE).build();
     }
 
     private static org.apache.hadoop.conf.Configuration getHadoopConf() {
@@ -69,17 +54,6 @@ class DeltaSinkFactory {
         conf.set("fs.s3a.aws.credentials.provider",
             "com.amazonaws.auth.ContainerCredentialsProvider");
         return conf;
-    }
-
-    private static DeltaBucketAssigner<RowData> getTestPartitionAssigner() {
-        DeltaPartitionComputer<RowData> partitionComputer =
-            (element, context) -> new LinkedHashMap<String, String>() {
-                {
-                    put("col1", Integer.toString(ThreadLocalRandom.current().nextInt(0, 2)));
-                    put("col2", Integer.toString(ThreadLocalRandom.current().nextInt(0, 2)));
-                }
-            };
-        return new DeltaBucketAssigner<>(partitionComputer);
     }
 
 }

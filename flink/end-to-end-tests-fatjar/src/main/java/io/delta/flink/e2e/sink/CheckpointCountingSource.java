@@ -20,6 +20,7 @@ package io.delta.flink.e2e.sink;
 
 import java.util.Collections;
 
+import io.delta.flink.e2e.datagenerator.TestDataGenerator;
 import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -28,7 +29,6 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +47,7 @@ class CheckpointCountingSource
     private final int numberOfCheckpoints;
     private final int recordsPerCheckpoint;
     private final boolean isFailoverScenario;
+    private final TestDataGenerator testDataGenerator;
     private ListState<Integer> nextValueState;
     private int nextValue;
     private volatile boolean isCanceled;
@@ -54,10 +55,12 @@ class CheckpointCountingSource
 
     CheckpointCountingSource(int numberOfRecords,
                              int numberOfCheckpoints,
-                             boolean isFailoverScenario) {
+                             boolean isFailoverScenario,
+                             TestDataGenerator testDataGenerator) {
         this.numberOfCheckpoints = numberOfCheckpoints;
         this.recordsPerCheckpoint = numberOfRecords / numberOfCheckpoints;
         this.isFailoverScenario = isFailoverScenario;
+        this.testDataGenerator = testDataGenerator;
     }
 
     @Override
@@ -121,13 +124,7 @@ class CheckpointCountingSource
 
     private void emitRecordsBatch(int batchSize, SourceContext<RowData> ctx) {
         for (int i = 0; i < batchSize; ++i) {
-            RowData row = TestRowTypes.CONVERTER.toInternal(
-                Row.of(
-                    String.valueOf(nextValue),
-                    String.valueOf((nextValue + nextValue)),
-                    nextValue
-                )
-            );
+            RowData row = testDataGenerator.get(i);
             ctx.collect(row);
             nextValue++;
         }
