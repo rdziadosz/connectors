@@ -55,17 +55,23 @@ public class TestParquetReader {
      * @throws IOException Thrown when the data cannot be read or writer cannot be instantiated
      */
     public static int readAndValidateAllTableRecords(DeltaLog deltaLog) throws IOException {
-        List<AddFile> deltaTableFiles = deltaLog.update().getAllFiles();
-        int cumulatedRecords = 0;
-        for (AddFile addedFile : deltaTableFiles) {
-            Path parquetFilePath = new Path(deltaLog.getPath().toString(), addedFile.getPath());
-            cumulatedRecords += TestParquetReader.parseAndCountRecords(
-                parquetFilePath,
-                DeltaSinkTestUtils.TEST_ROW_TYPE,
-                DeltaSinkTestUtils.TEST_ROW_TYPE_CONVERTER
-            );
-        }
-        return cumulatedRecords;
+        // Reading parquet files sequentially is quite slow, let's do it in parallel.
+        return deltaLog.update().getAllFiles()
+            .parallelStream()
+            .map(addedFile -> new Path(deltaLog.getPath().toString(), addedFile.getPath()))
+            .map(parquetFilePath -> {
+                try {
+                    return TestParquetReader.parseAndCountRecords(
+                        parquetFilePath,
+                        DeltaSinkTestUtils.TEST_ROW_TYPE,
+                        DeltaSinkTestUtils.TEST_ROW_TYPE_CONVERTER
+                    );
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .mapToInt(Integer::intValue)
+            .sum();
     }
 
     public static int readAndValidateAllTableRecords(
