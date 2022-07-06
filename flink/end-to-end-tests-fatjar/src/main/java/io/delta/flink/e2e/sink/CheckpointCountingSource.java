@@ -111,7 +111,7 @@ class CheckpointCountingSource
                 emitRecordsBatch(recordsPerCheckpoint, ctx);
                 waitingForCheckpoint = true;
             }
-            LOGGER.info("Waiting for checkpoint to complete; subtask={}.",
+            LOGGER.debug("Waiting for checkpoint to complete; subtask={}.",
                 getRuntimeContext().getIndexOfThisSubtask());
             while (waitingForCheckpoint) {
                 Thread.sleep(1);
@@ -131,7 +131,7 @@ class CheckpointCountingSource
             ctx.collect(row);
             nextValue++;
         }
-        LOGGER.info("Emitted {} records (total {}); subtask={}.", batchSize, nextValue,
+        LOGGER.debug("Emitted {} records (total {}); subtask={}.", batchSize, nextValue,
             getRuntimeContext().getIndexOfThisSubtask());
     }
 
@@ -151,7 +151,7 @@ class CheckpointCountingSource
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         nextValueState.update(Collections.singletonList(nextValue));
-        LOGGER.info("state snapshot done; checkpointId={}; subtask={}.",
+        LOGGER.debug("state snapshot done; checkpointId={}; subtask={}.",
             context.getCheckpointId(),
             getRuntimeContext().getIndexOfThisSubtask());
     }
@@ -159,13 +159,13 @@ class CheckpointCountingSource
     @Override
     public void notifyCheckpointComplete(long checkpointId) {
         waitingForCheckpoint = false;
-        LOGGER.info("Checkpoint {} complete; subtask={}.", checkpointId,
+        LOGGER.debug("Checkpoint {} complete; subtask={}.", checkpointId,
             getRuntimeContext().getIndexOfThisSubtask());
     }
 
     @Override
     public void notifyCheckpointAborted(long checkpointId) throws Exception {
-        LOGGER.info("Checkpoint {} aborted; subtask={}.", checkpointId,
+        LOGGER.debug("Checkpoint {} aborted; subtask={}.", checkpointId,
             getRuntimeContext().getIndexOfThisSubtask());
         CheckpointListener.super.notifyCheckpointAborted(checkpointId);
     }

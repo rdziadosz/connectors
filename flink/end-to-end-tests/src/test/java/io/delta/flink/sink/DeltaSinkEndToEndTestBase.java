@@ -94,10 +94,10 @@ abstract class DeltaSinkEndToEndTestBase {
 
     private void cancelJobIfRunning() throws Exception {
         if (getFlinkClient() != null && jobID != null && !getFlinkClient().isFinished(jobID)) {
-            LOGGER.warn("Cancelling job {}.", jobID);
+            LOGGER.info("Cancelling job {}.", jobID);
             getFlinkClient().cancel(jobID);
             jobID = null;
-            LOGGER.warn("Job cancelled.");
+            LOGGER.info("Job cancelled.");
         }
     }
 
@@ -122,7 +122,7 @@ abstract class DeltaSinkEndToEndTestBase {
                 );
             }
             Thread.sleep(5_000L);
-            LOGGER.warn("Waiting until {}", waitUntil);
+            LOGGER.info("Waiting until {}", waitUntil);
         }
         Assertions.assertTrue(getFlinkClient().isFinished(jobID),
             "Job has not finished in a timely manner.");
