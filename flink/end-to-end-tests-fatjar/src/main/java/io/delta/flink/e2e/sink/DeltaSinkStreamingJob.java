@@ -40,15 +40,15 @@ public class DeltaSinkStreamingJob {
         String testName = parameters.get("test-name");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        getPipeline(env, tablePath, isTablePartitioned, triggerFailover, inputRecordsCount);
+        initPipeline(env, tablePath, isTablePartitioned, triggerFailover, inputRecordsCount);
         env.execute(testName);
     }
 
-    public static void getPipeline(StreamExecutionEnvironment env,
-                                   String deltaTablePath,
-                                   boolean isTablePartitioned,
-                                   boolean triggerFailover,
-                                   int inputRecordsCount) {
+    public static void initPipeline(StreamExecutionEnvironment env,
+                                    String deltaTablePath,
+                                    boolean isTablePartitioned,
+                                    boolean triggerFailover,
+                                    int inputRecordsCount) {
         RestartStrategyConfiguration restartStrategyConfiguration = triggerFailover
             ? RestartStrategies.fixedDelayRestart(1, Time.seconds(10))
             : RestartStrategies.noRestart();

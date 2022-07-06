@@ -26,13 +26,18 @@ import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
 import io.delta.flink.utils.TestParquetReader;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import static io.delta.flink.assertions.DeltaLogAssertions.assertThat;
 
 import io.delta.standalone.DeltaLog;
 
-
+@RunWith(Parameterized.class)
+@DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
 class DeltaSinkBatchEndToEndTest extends DeltaConnectorBatchEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;

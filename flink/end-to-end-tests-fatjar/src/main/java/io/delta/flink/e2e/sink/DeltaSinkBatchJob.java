@@ -18,10 +18,10 @@
 
 package io.delta.flink.e2e.sink;
 
+import io.delta.flink.e2e.utils.FailingMapFunction;
+import io.delta.flink.e2e.utils.IdentityMapFunction;
 import io.delta.flink.sink.internal.DeltaSinkInternal;
 import org.apache.flink.api.common.RuntimeExecutionMode;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration;
 import org.apache.flink.api.common.time.Time;
@@ -49,15 +49,15 @@ public class DeltaSinkBatchJob {
         env.setRestartStrategy(restartStrategyConfiguration);
         env.disableOperatorChaining();
 
-        getPipeline(env, tablePath, isTablePartitioned, inputRecordsCount, triggerFailover);
+        initPipeline(env, tablePath, isTablePartitioned, inputRecordsCount, triggerFailover);
         env.execute(testName);
     }
 
-    public static void getPipeline(StreamExecutionEnvironment env,
-                                   String deltaTablePath,
-                                   boolean isTablePartitioned,
-                                   int inputRecordsCount,
-                                   boolean triggerFailover) {
+    public static void initPipeline(StreamExecutionEnvironment env,
+                                    String deltaTablePath,
+                                    boolean isTablePartitioned,
+                                    int inputRecordsCount,
+                                    boolean triggerFailover) {
         DeltaSinkInternal<RowData> deltaSink = createDeltaSink(deltaTablePath, isTablePartitioned);
 
         env.fromCollection(RowDataListGenerator.getTestRowData(inputRecordsCount))
@@ -69,33 +69,4 @@ public class DeltaSinkBatchJob {
             .sinkTo(deltaSink);
     }
 
-    private static final class IdentityMapFunction implements MapFunction<RowData, RowData> {
-        @Override
-        public RowData map(RowData value) {
-            return value;
-        }
-    }
-
-    private static final class FailingMapFunction extends RichMapFunction<RowData, RowData> {
-
-        private final int failAfterRecordCount;
-
-        private int count;
-
-        FailingMapFunction(int failAfterRecordCount) {
-            this.failAfterRecordCount = failAfterRecordCount;
-            this.count = 0;
-        }
-
-        @Override
-        public RowData map(RowData value) {
-            count++;
-            if (count == failAfterRecordCount &&
-                getRuntimeContext().getIndexOfThisSubtask() == 0 &&
-                getRuntimeContext().getAttemptNumber() == 0) {
-                throw new RuntimeException("Designated Exception");
-            }
-            return value;
-        }
-    }
 }
