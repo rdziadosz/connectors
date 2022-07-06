@@ -54,9 +54,9 @@ public class DeltaSinkStreamingJob {
             : RestartStrategies.noRestart();
 
         env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
-        env.enableCheckpointing(100L, CheckpointingMode.EXACTLY_ONCE);
-        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(100L);
-        env.getCheckpointConfig().setCheckpointTimeout(10_000L);
+        env.enableCheckpointing(1000L, CheckpointingMode.EXACTLY_ONCE);
+        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(1000L);
+        env.getCheckpointConfig().setCheckpointTimeout(15_000L);
         env.setRestartStrategy(restartStrategyConfiguration);
         env.disableOperatorChaining();
 
