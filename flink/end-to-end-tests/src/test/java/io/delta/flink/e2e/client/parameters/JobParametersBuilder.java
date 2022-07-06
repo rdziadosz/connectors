@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client.parameters;
+package io.delta.flink.e2e.client.parameters;
 
 import java.util.HashMap;
 import java.util.Map;

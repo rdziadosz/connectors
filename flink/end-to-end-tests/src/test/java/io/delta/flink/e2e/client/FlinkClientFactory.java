@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client;
+package io.delta.flink.e2e.client;
 
 public class FlinkClientFactory {
 

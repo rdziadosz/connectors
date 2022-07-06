@@ -16,24 +16,24 @@
  * limitations under the License.
  */
 
-package io.delta.flink.sink;
+package io.delta.flink.e2e;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import io.delta.flink.client.FlinkClient;
+import io.delta.flink.e2e.client.FlinkClient;
 import org.apache.flink.api.common.JobID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static io.delta.flink.utils.AwsUtils.removeS3DirectoryRecursively;
-import static io.delta.flink.utils.AwsUtils.uploadDirectoryToS3;
+import static io.delta.flink.e2e.utils.AwsUtils.removeS3DirectoryRecursively;
+import static io.delta.flink.e2e.utils.AwsUtils.uploadDirectoryToS3;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-abstract class DeltaSinkEndToEndTestBase {
+public abstract class DeltaSinkEndToEndTestBase {
 
     protected static final Logger LOGGER =
         LoggerFactory.getLogger(DeltaSinkEndToEndTestBase.class);

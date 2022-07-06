@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client;
+package io.delta.flink.e2e.client;
 
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import io.delta.flink.client.parameters.JobParameters;
+import io.delta.flink.e2e.client.parameters.JobParameters;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.client.deployment.StandaloneClusterId;

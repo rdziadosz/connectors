@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client;
+package io.delta.flink.e2e.client;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.stream.Collectors;
 
-import io.delta.flink.client.parameters.JobParameters;
+import io.delta.flink.e2e.client.parameters.JobParameters;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;

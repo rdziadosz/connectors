@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package io.delta.flink.sink;
+package io.delta.flink.e2e.sink;
 
 import java.time.Duration;
 
-import io.delta.flink.client.parameters.JobParameters;
-import io.delta.flink.client.parameters.JobParametersBuilder;
+import io.delta.flink.e2e.DeltaSinkStreamingEndToEndTestBase;
+import io.delta.flink.e2e.client.parameters.JobParameters;
+import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
 import io.delta.flink.utils.TestParquetReader;
 import org.junit.jupiter.api.DisplayName;

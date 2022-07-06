@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.delta.flink.utils;
+package io.delta.flink.e2e.utils;
 
 import java.io.File;
 import java.util.ArrayList;

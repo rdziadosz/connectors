@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package io.delta.flink.sink;
+package io.delta.flink.e2e;
 
-import io.delta.flink.client.FlinkClient;
-import io.delta.flink.client.FlinkClientFactory;
+import io.delta.flink.e2e.client.FlinkClient;
+import io.delta.flink.e2e.client.FlinkClientFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
-class DeltaSinkBatchEndToEndTestBase extends DeltaSinkEndToEndTestBase {
+public class DeltaSinkBatchEndToEndTestBase extends DeltaSinkEndToEndTestBase {
 
     protected static FlinkClient flinkClient;
     protected static String jarId;

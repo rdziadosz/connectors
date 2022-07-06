@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package io.delta.flink.client;
+package io.delta.flink.e2e.client;
 
-import io.delta.flink.client.parameters.JobParameters;
+import io.delta.flink.e2e.client.parameters.JobParameters;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 
