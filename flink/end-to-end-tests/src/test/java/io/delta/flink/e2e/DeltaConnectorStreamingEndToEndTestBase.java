@@ -23,7 +23,7 @@ import io.delta.flink.e2e.client.FlinkClientFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
-public class DeltaSinkBatchEndToEndTestBase extends DeltaSinkEndToEndTestBase {
+public class DeltaConnectorStreamingEndToEndTestBase extends DeltaConnectorEndToEndTestBase {
 
     protected static FlinkClient flinkClient;
     protected static String jarId;

@@ -20,7 +20,7 @@ package io.delta.flink.e2e.sink;
 
 import java.time.Duration;
 
-import io.delta.flink.e2e.DeltaSinkBatchEndToEndTestBase;
+import io.delta.flink.e2e.DeltaConnectorBatchEndToEndTestBase;
 import io.delta.flink.e2e.client.parameters.JobParameters;
 import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
 import io.delta.flink.utils.DeltaTestUtils;
@@ -33,7 +33,7 @@ import static io.delta.flink.assertions.DeltaLogAssertions.assertThat;
 import io.delta.standalone.DeltaLog;
 
 
-class DeltaSinkBatchEndToEndTest extends DeltaSinkBatchEndToEndTestBase {
+class DeltaSinkBatchEndToEndTest extends DeltaConnectorBatchEndToEndTestBase {
 
     private static final int INPUT_RECORDS = 10_000;
     private static final int PARALLELISM = 3;

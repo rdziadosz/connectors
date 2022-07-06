@@ -33,10 +33,10 @@ import static io.delta.flink.e2e.utils.AwsUtils.removeS3DirectoryRecursively;
 import static io.delta.flink.e2e.utils.AwsUtils.uploadDirectoryToS3;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public abstract class DeltaSinkEndToEndTestBase {
+public abstract class DeltaConnectorEndToEndTestBase {
 
     protected static final Logger LOGGER =
-        LoggerFactory.getLogger(DeltaSinkEndToEndTestBase.class);
+        LoggerFactory.getLogger(DeltaConnectorEndToEndTestBase.class);
 
     protected String bucketName;
     protected String testDataLocationPrefix;
