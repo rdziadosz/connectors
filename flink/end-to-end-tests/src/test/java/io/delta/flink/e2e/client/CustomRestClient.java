@@ -31,6 +31,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.DeserializationFeature;
@@ -176,14 +177,16 @@ class CustomRestClient implements FlinkClient {
 
     protected <T> T executeRequest(Request request, Class<T> responseClass) throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
+            ResponseBody body = response.body();
             if (!response.isSuccessful()) {
+                LOGGER.error("Request failed; code={}; body={}", response.code(),
+                    body == null ? null : body.string());
                 throw new RuntimeException("Request failed: " + response);
             }
-            if (response.body() == null) {
+            if (body == null) {
                 throw new RuntimeException("Response body is empty.");
             }
-            String bodyAsString = response.body().string();
-            return objectMapper.readValue(bodyAsString, responseClass);
+            return objectMapper.readValue(body.string(), responseClass);
         }
     }
 
