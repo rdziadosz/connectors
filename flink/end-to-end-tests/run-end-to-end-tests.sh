@@ -23,7 +23,7 @@ TERRAFORM_DIR="$WORKDIR/terraform/"
 
 build_artifact() {
   cd "$PROJECT_ROOT_DIR" || exit
-  build/sbt flinkEndToEndTestsFatJar/assembly
+  build/sbt "++ $SCALA_VERSION" flinkEndToEndTestsFatJar/assembly
   local return_code=$?
   cd "$WORKDIR" || exit
   return $return_code
@@ -31,7 +31,7 @@ build_artifact() {
 
 export_fat_jar_path() {
   local matching_jar
-  matching_jar=$(find "$WORKDIR"/../end-to-end-tests-fatjar/ -iname 'flink-end-to-end-tests-fatjar-assembly-*.jar' -type f)
+  matching_jar=$(find "$WORKDIR"/../end-to-end-tests-fatjar/target/scala-"$SHORT_SCALA_VERSION"/ -iname 'flink-end-to-end-tests-fatjar-assembly-*.jar' -type f)
 
   if [ -z "$matching_jar" ]; then
     echo "Cannot find artifact containing test jobs."
@@ -85,7 +85,7 @@ run_end_to_end_tests() {
   echo "JOBMANAGER_HOSTNAME=$JOBMANAGER_HOSTNAME"
   echo "JOBMANAGER_PORT=$JOBMANAGER_PORT"
 
-  build/sbt \
+  build/sbt "++ $SCALA_VERSION" \
     -DE2E_JAR_PATH="$JAR_PATH" \
     -DE2E_TEST_DATA_LOCAL_PATH="$TEST_DATA_LOCAL_PATH" \
     -DE2E_S3_BUCKET_NAME="$S3_BUCKET_NAME" \
@@ -124,6 +124,12 @@ main() {
     --preserve-cloudwatch-logs)
       PRESERVE_CLOUDWATCH_LOGS="yes"
       shift # past argument
+      ;;
+    --scala-version)
+      SCALA_VERSION="$2"
+      SHORT_SCALA_VERSION="${SCALA_VERSION:0:4}"  # Take only the first four characters (e.g. 2.12).
+      shift # past argument
+      shift # past value
       ;;
     -* | --*)
       echo "Unknown option $1"
