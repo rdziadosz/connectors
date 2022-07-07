@@ -54,7 +54,6 @@ public class AvroParquetFileReader {
         return result;
     }
 
-
     public List<GenericRecord> readRecursively(String filePath) throws IOException {
         return FileSystemUtils.listFiles(filePath).parallelStream()
             .filter(path -> path.getName().endsWith(".parquet"))

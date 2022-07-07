@@ -82,6 +82,10 @@ public final class JobParametersBuilder {
         return withArgument("trigger-failover", triggerFailover);
     }
 
+    public JobParametersBuilder withOutputPath(String outputPath) {
+        return withArgument("output-path", outputPath);
+    }
+
     public JobParameters build() {
         return new JobParameters(jarPath, jarId, entryPointClassName, parallelism, arguments);
     }

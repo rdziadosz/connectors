@@ -82,7 +82,7 @@ public abstract class DeltaConnectorEndToEndTestBase {
     }
 
     @AfterEach
-    void cleanUp() throws Exception {
+    protected void cleanUp() throws Exception {
         cancelJobIfRunning();
         removeTestDataIfNeeded();
     }
