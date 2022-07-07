@@ -29,3 +29,7 @@ variable "test_data_bucket_name" {
 variable "cloudwatch_group_id" {
   type = string
 }
+
+variable "tags" {
+  type = map(string)
+}

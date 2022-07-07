@@ -31,5 +31,7 @@ module "flink_session_cluster" {
   availability_zone2    = var.availability_zone2
   test_data_bucket_name = var.test_data_bucket_name
 
+  tags = var.tags
+
   depends_on = [module.networking, module.storage, module.cloudwatch]
 }

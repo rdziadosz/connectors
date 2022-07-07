@@ -89,6 +89,18 @@ resource "aws_autoscaling_group" "flink_session_cluster" {
   target_group_arns    = [aws_alb_target_group.public_rest.arn]
   termination_policies = ["OldestInstance"]
   vpc_zone_identifier  = [var.subnet1_id, var.subnet2_id]
+  # AWS Auto Scaling Groups (ASGs) dynamically create and destroy EC2 instances as defined in the ASG's configuration.
+  # Because these EC2 instances are created and destroyed by AWS, Terraform does not manage them, and is not directly
+  # aware of them. As a result, the AWS provider cannot apply your default tags to the EC2 instances managed by
+  # your ASG.
+  dynamic "tag" {
+    for_each = data.aws_default_tags.current.tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+  }
 }
 
 /* ========== ECS ========== */
@@ -145,6 +157,7 @@ resource "aws_ecs_service" flink_session_cluster {
     container_name   = local.jobmanager_container_name
     container_port   = local.jobmanager_rest_port
   }
+  propagate_tags = "SERVICE"
   depends_on = [
     aws_iam_role_policy_attachment.ecs_instance,
     aws_autoscaling_group.flink_session_cluster
