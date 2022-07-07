@@ -23,56 +23,48 @@ import java.time.Instant;
 import java.util.UUID;
 
 import io.delta.flink.e2e.client.FlinkClient;
+import io.delta.flink.e2e.client.FlinkClientFactory;
 import org.apache.flink.api.common.JobID;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static io.delta.flink.e2e.TestParameters.getJobManagerHost;
+import static io.delta.flink.e2e.TestParameters.getJobManagerPort;
+import static io.delta.flink.e2e.TestParameters.getTestArtifactPath;
+import static io.delta.flink.e2e.TestParameters.getTestDataLocalPath;
+import static io.delta.flink.e2e.TestParameters.getTestS3BucketName;
+import static io.delta.flink.e2e.TestParameters.preserveS3Data;
 import static io.delta.flink.e2e.utils.AwsUtils.removeS3DirectoryRecursively;
 import static io.delta.flink.e2e.utils.AwsUtils.uploadDirectoryToS3;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public abstract class DeltaConnectorEndToEndTestBase {
 
     protected static final Logger LOGGER =
         LoggerFactory.getLogger(DeltaConnectorEndToEndTestBase.class);
 
-    protected String bucketName;
+    protected static FlinkClient flinkClient;
+    protected static String jarId;
+    protected static String bucketName;
+
     protected String testDataLocationPrefix;
     protected String deltaTableLocation;
     protected JobID jobID;
 
-    protected static String getTestArtifactPath() {
-        return getEnvProperty("E2E_JAR_PATH");
-    }
 
-    protected static String getTestS3BucketName() {
-        return getEnvProperty("E2E_S3_BUCKET_NAME");
-    }
-
-    protected static String getTestDataLocalPath() {
-        return getEnvProperty("E2E_TEST_DATA_LOCAL_PATH");
-    }
-
-    protected static String getJobManagerHost() {
-        return getEnvProperty("E2E_JOBMANAGER_HOSTNAME");
-    }
-
-    protected static int getJobManagerPort() {
-        String jobmanagerPortString = getEnvProperty("E2E_JOBMANAGER_PORT");
-        return Integer.parseInt(jobmanagerPortString);
-    }
-
-    private static String getEnvProperty(String name) {
-        String property = System.getProperty(name);
-        assertNotNull(property, name + " environment property has not been specified.");
-        return property;
+    @BeforeAll
+    static void setUpClass() throws Exception {
+        flinkClient = FlinkClientFactory.getCustomRestClient(
+            getJobManagerHost(), getJobManagerPort());
+        jarId = flinkClient.uploadJar(getTestArtifactPath());
+        bucketName = getTestS3BucketName();
     }
 
     @BeforeEach
-    void setUp() throws InterruptedException {
-        bucketName = getTestS3BucketName();
+    protected void setUp() throws Exception {
         uploadTestData();
     }
 
@@ -84,8 +76,6 @@ public abstract class DeltaConnectorEndToEndTestBase {
         LOGGER.info("Test data uploaded.");
     }
 
-    protected abstract FlinkClient getFlinkClient();
-
     @AfterEach
     void cleanUp() throws Exception {
         cancelJobIfRunning();
@@ -93,17 +83,16 @@ public abstract class DeltaConnectorEndToEndTestBase {
     }
 
     private void cancelJobIfRunning() throws Exception {
-        if (getFlinkClient() != null && jobID != null && !getFlinkClient().isFinished(jobID)) {
+        if (flinkClient != null && jobID != null && !flinkClient.isFinished(jobID)) {
             LOGGER.info("Cancelling job {}.", jobID);
-            getFlinkClient().cancel(jobID);
-            jobID = null;
+            flinkClient.cancel(jobID);
             LOGGER.info("Job cancelled.");
         }
+        jobID = null;
     }
 
     private void removeTestDataIfNeeded() {
-        String preserveS3Data = System.getProperty("E2E_PRESERVE_S3_DATA");
-        if (!"yes".equalsIgnoreCase(preserveS3Data)) {
+        if (!preserveS3Data()) {
             LOGGER.info("Removing test data in S3 {}", deltaTableLocation);
             removeS3DirectoryRecursively(bucketName, testDataLocationPrefix);
             LOGGER.info("Test data removed.");
@@ -112,19 +101,26 @@ public abstract class DeltaConnectorEndToEndTestBase {
         }
     }
 
+    @AfterAll
+    static void cleanUpClass() throws Exception {
+        if (flinkClient != null && jarId != null) {
+            flinkClient.deleteJar(jarId);
+        }
+    }
+
     protected void wait(Duration waitTime) throws Exception {
         Instant waitUntil = Instant.now().plus(waitTime);
-        while (!getFlinkClient().isFinished(jobID) && Instant.now().isBefore(waitUntil)) {
-            if (getFlinkClient().isFailed(jobID) || getFlinkClient().isCanceled(jobID)) {
+        while (!flinkClient.isFinished(jobID) && Instant.now().isBefore(waitUntil)) {
+            if (flinkClient.isFailed(jobID) || flinkClient.isCanceled(jobID)) {
                 Assertions.fail(
                     String.format("Job has failed or has been cancelled; status=%s.",
-                        getFlinkClient().getStatus(jobID))
+                        flinkClient.getStatus(jobID))
                 );
             }
             Thread.sleep(5_000L);
             LOGGER.info("Waiting until {}", waitUntil);
         }
-        Assertions.assertTrue(getFlinkClient().isFinished(jobID),
+        Assertions.assertTrue(flinkClient.isFinished(jobID),
             "Job has not finished in a timely manner.");
     }
 
