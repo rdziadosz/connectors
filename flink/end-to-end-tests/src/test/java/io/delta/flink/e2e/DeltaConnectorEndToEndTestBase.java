@@ -18,6 +18,7 @@
 
 package io.delta.flink.e2e;
 
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static io.delta.flink.e2e.TestParameters.getJobManagerHost;
@@ -54,6 +56,8 @@ public abstract class DeltaConnectorEndToEndTestBase {
     protected String deltaTableLocation;
     protected JobID jobID;
 
+    protected TestInfo testInfo;
+
 
     @BeforeAll
     static void setUpClass() throws Exception {
@@ -64,7 +68,8 @@ public abstract class DeltaConnectorEndToEndTestBase {
     }
 
     @BeforeEach
-    protected void setUp() throws Exception {
+    protected void setUp(TestInfo testInfo) throws Exception {
+        this.testInfo = testInfo;
         uploadTestData();
     }
 
@@ -106,6 +111,15 @@ public abstract class DeltaConnectorEndToEndTestBase {
         if (flinkClient != null && jarId != null) {
             flinkClient.deleteJar(jarId);
         }
+    }
+
+    protected String getTestDisplayName() {
+        return String.format(
+            "%s -> %s -> %s",
+            testInfo.getTestClass().map(Class::getSimpleName).orElse("<empty>"),
+            testInfo.getTestMethod().map(Method::getName).orElse("<empty>"),
+            testInfo.getDisplayName()
+        );
     }
 
     protected void wait(Duration waitTime) throws Exception {

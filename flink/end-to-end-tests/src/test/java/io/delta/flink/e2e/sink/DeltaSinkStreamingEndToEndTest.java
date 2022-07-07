@@ -56,15 +56,9 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
         // AND
-        JobParameters jobParameters = JobParametersBuilder.builder()
-            .withName(String.format("[E2E] Sink: add new records in streaming; " +
-                "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
-            .withJarId(jarId)
-            .withEntryPointClassName(JOB_MAIN_CLASS)
-            .withParallelism(PARALLELISM)
+        JobParameters jobParameters = streamingJobParameters()
             .withDeltaTablePath(tablePath)
             .withTablePartitioned(isPartitioned)
-            .withInputRecords(INPUT_RECORDS)
             .withTriggerFailover(triggerFailover)
             .build();
 
@@ -92,15 +86,9 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         // AND
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         // AND
-        JobParameters jobParameters = JobParametersBuilder.builder()
-            .withName(String.format("[E2E] Sink: should create Delta checkpoints; " +
-                "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
-            .withJarId(jarId)
-            .withEntryPointClassName(JOB_MAIN_CLASS)
-            .withParallelism(PARALLELISM)
+        JobParameters jobParameters = streamingJobParameters()
             .withDeltaTablePath(tablePath)
             .withTablePartitioned(isPartitioned)
-            .withInputRecords(INPUT_RECORDS)
             .withTriggerFailover(triggerFailover)
             .build();
 
@@ -113,6 +101,15 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
             .sinceVersion(initialDeltaVersion)
             .hasCheckpointsCount(2)
             .hasLastCheckpointFile();
+    }
+
+    private JobParametersBuilder streamingJobParameters() {
+        return JobParametersBuilder.builder()
+            .withName(getTestDisplayName())
+            .withJarId(jarId)
+            .withEntryPointClassName(JOB_MAIN_CLASS)
+            .withParallelism(PARALLELISM)
+            .withInputRecords(INPUT_RECORDS);
     }
 
 }

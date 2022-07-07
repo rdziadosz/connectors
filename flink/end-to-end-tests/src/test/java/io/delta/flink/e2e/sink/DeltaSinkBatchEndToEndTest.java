@@ -55,15 +55,9 @@ class DeltaSinkBatchEndToEndTest extends DeltaConnectorEndToEndTestBase {
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
         // AND
-        JobParameters jobParameters = JobParametersBuilder.builder()
-            .withName(String.format("[E2E] Sink: add new records in batch; " +
-                "is partitioned=%s; failover=%s", isPartitioned, triggerFailover))
-            .withJarId(jarId)
-            .withEntryPointClassName(JOB_MAIN_CLASS)
-            .withParallelism(PARALLELISM)
+        JobParameters jobParameters = batchJobParameters()
             .withDeltaTablePath(tablePath)
             .withTablePartitioned(isPartitioned)
-            .withInputRecords(INPUT_RECORDS)
             .withTriggerFailover(triggerFailover)
             .build();
 
@@ -80,4 +74,12 @@ class DeltaSinkBatchEndToEndTest extends DeltaConnectorEndToEndTestBase {
             .hasPositiveNumOutputBytesInEachVersion();
     }
 
+    private JobParametersBuilder batchJobParameters() {
+        return JobParametersBuilder.builder()
+            .withName(getTestDisplayName())
+            .withJarId(jarId)
+            .withEntryPointClassName(JOB_MAIN_CLASS)
+            .withParallelism(PARALLELISM)
+            .withInputRecords(INPUT_RECORDS);
+    }
 }
