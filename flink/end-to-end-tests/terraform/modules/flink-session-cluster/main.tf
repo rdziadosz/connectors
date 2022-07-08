@@ -6,7 +6,7 @@ locals {
   flink_jobmanager_properties  = <<EOT
     jobmanager.rpc.address: jobmanager
     jobmanager.memory.process.size: 3g
-    taskmanager.memory.jvm-metaspace.size: 1g
+    jobmanager.memory.jvm-metaspace.size: 1g
     fs.s3a.aws.credentials.provider: com.amazonaws.auth.ContainerCredentialsProvider
     classloader.check-leaked-classloader: false
     EOT
