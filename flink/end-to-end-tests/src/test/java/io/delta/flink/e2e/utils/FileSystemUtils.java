@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
@@ -29,6 +30,15 @@ public class FileSystemUtils {
         Path path = new Path(basePath);
         FileSystem fileSystem = path.getFileSystem(new Configuration());
         return fileSystem.exists(path);
+    }
+
+    public static FileStatus getFileStatus(Path path) throws Exception {
+        FileSystem fileSystem = path.getFileSystem(new Configuration());
+        return fileSystem.getFileStatus(path);
+    }
+
+    public static FileStatus getFileStatus(String basePath) throws Exception {
+        return getFileStatus(new Path(basePath));
     }
 
 }

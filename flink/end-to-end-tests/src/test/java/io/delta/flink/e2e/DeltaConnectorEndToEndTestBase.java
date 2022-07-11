@@ -39,11 +39,9 @@ import org.slf4j.LoggerFactory;
 import static io.delta.flink.e2e.TestParameters.getJobManagerHost;
 import static io.delta.flink.e2e.TestParameters.getJobManagerPort;
 import static io.delta.flink.e2e.TestParameters.getTestArtifactPath;
-import static io.delta.flink.e2e.TestParameters.getTestDataLocalPath;
 import static io.delta.flink.e2e.TestParameters.getTestS3BucketName;
 import static io.delta.flink.e2e.TestParameters.preserveS3Data;
 import static io.delta.flink.e2e.utils.AwsUtils.removeS3DirectoryRecursively;
-import static io.delta.flink.e2e.utils.AwsUtils.uploadDirectoryToS3;
 
 public abstract class DeltaConnectorEndToEndTestBase {
 
@@ -75,15 +73,12 @@ public abstract class DeltaConnectorEndToEndTestBase {
     @BeforeEach
     protected void setUp(TestInfo testInfo) throws Exception {
         this.testInfo = testInfo;
-        uploadTestData();
+        initializeTestDataLocation();
     }
 
-    private void uploadTestData() throws InterruptedException {
+    private void initializeTestDataLocation() {
         testDataLocationPrefix = "flink-connector-e2e-tests/" + UUID.randomUUID();
         deltaTableLocation = String.format("s3a://%s/%s/", bucketName, testDataLocationPrefix);
-        LOGGER.info("Uploading test data to S3 {}", deltaTableLocation);
-        uploadDirectoryToS3(bucketName, testDataLocationPrefix, getTestDataLocalPath());
-        LOGGER.info("Test data uploaded.");
     }
 
     @AfterEach
@@ -141,14 +136,6 @@ public abstract class DeltaConnectorEndToEndTestBase {
         }
         Assertions.assertTrue(flinkClient.isFinished(jobID),
             "Job has not finished in a timely manner.");
-    }
-
-    protected String getPartitionedTablePath() {
-        return deltaTableLocation + "test-partitioned-delta-table-initial-state";
-    }
-
-    protected String getNonPartitionedTablePath() {
-        return deltaTableLocation + "test-non-partitioned-delta-table-initial-state";
     }
 
 }

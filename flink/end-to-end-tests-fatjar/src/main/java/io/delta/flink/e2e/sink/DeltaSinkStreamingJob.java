@@ -18,8 +18,6 @@
 
 package io.delta.flink.e2e.sink;
 
-import io.delta.flink.e2e.datagenerator.NonPartitionedTestDataGenerator;
-import io.delta.flink.e2e.datagenerator.PartitionedTestDataGenerator;
 import io.delta.flink.e2e.datagenerator.TestDataGenerator;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -63,9 +61,7 @@ public class DeltaSinkStreamingJob {
         env.setRestartStrategy(restartStrategyConfiguration);
         env.disableOperatorChaining();
 
-        TestDataGenerator testDataGenerator = isTablePartitioned
-            ? new PartitionedTestDataGenerator()
-            : new NonPartitionedTestDataGenerator();
+        TestDataGenerator testDataGenerator = new TestDataGenerator();
 
         env.addSource(new CheckpointCountingSource(inputRecordsCount, EXPECTED_CHECKPOINTS,
                 triggerFailover, testDataGenerator))

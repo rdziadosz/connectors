@@ -23,7 +23,7 @@ import java.time.Duration;
 import io.delta.flink.e2e.DeltaConnectorEndToEndTestBase;
 import io.delta.flink.e2e.client.parameters.JobParameters;
 import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
-import io.delta.flink.e2e.utils.HadoopConfig;
+import io.delta.flink.e2e.data.UserDeltaTable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -32,8 +32,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import static io.delta.flink.e2e.assertions.DeltaLogAssertions.assertThat;
-
-import io.delta.standalone.DeltaLog;
 
 @RunWith(Parameterized.class)
 @DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
@@ -45,20 +43,24 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
 
 
     @DisplayName("Connector in streaming mode should add new records to the Delta Table")
-    @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
+    @ParameterizedTest(name = "partitioned table: {0}; failover: {1}")
     @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
-    void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
+    void shouldAddNewRecords(boolean isPartitioned, boolean triggerFailover) throws Exception {
         // GIVEN
-        String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
-        DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
+        UserDeltaTable userTable = isPartitioned
+            ? UserDeltaTable.partitionedByCountryAndBirthYear(deltaTableLocation)
+            : UserDeltaTable.nonPartitioned(deltaTableLocation);
+        userTable.initializeTable();
         // AND
-        long initialDeltaVersion = deltaLog.snapshot().getVersion();
-        int initialRecordCount = parquetFileReader.readRecursively(tablePath).size();
+        long initialDeltaVersion = userTable.getDeltaLog().snapshot().getVersion();
+        int initialRecordCount = parquetFileReader.readRecursively(deltaTableLocation).size();
         // AND
         JobParameters jobParameters = streamingJobParameters()
-            .withDeltaTablePath(tablePath)
+            .withDeltaTablePath(deltaTableLocation)
             .withTablePartitioned(isPartitioned)
             .withTriggerFailover(triggerFailover)
+            .withParallelism(PARALLELISM)
+            .withInputRecords(INPUT_RECORDS)
             .build();
 
         // WHEN
@@ -66,7 +68,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         wait(Duration.ofMinutes(3));
 
         // THEN
-        assertThat(deltaLog)
+        assertThat(userTable.getDeltaLog())
             .sinceVersion(initialDeltaVersion)
             .hasRecordCountInParquetFiles(initialRecordCount + INPUT_RECORDS * PARALLELISM)
             .hasNewRecordCountInOperationMetrics(INPUT_RECORDS * PARALLELISM)
@@ -76,19 +78,23 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
 
 
     @DisplayName("Connector in streaming mode should create Delta checkpoints")
-    @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
+    @ParameterizedTest(name = "partitioned table: {0}; failover: {1}")
     @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
-    void shouldCreateCheckpoints(boolean triggerFailover, boolean isPartitioned) throws Exception {
+    void shouldCreateCheckpoints(boolean isPartitioned, boolean triggerFailover) throws Exception {
         // GIVEN
-        String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
-        DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
+        UserDeltaTable userTable = isPartitioned
+            ? UserDeltaTable.partitionedByCountryAndBirthYear(deltaTableLocation)
+            : UserDeltaTable.nonPartitioned(deltaTableLocation);
+        userTable.initializeTable();
         // AND
-        long initialDeltaVersion = deltaLog.snapshot().getVersion();
+        long initialDeltaVersion = userTable.getDeltaLog().snapshot().getVersion();
         // AND
         JobParameters jobParameters = streamingJobParameters()
-            .withDeltaTablePath(tablePath)
+            .withDeltaTablePath(deltaTableLocation)
             .withTablePartitioned(isPartitioned)
             .withTriggerFailover(triggerFailover)
+            .withParallelism(PARALLELISM)
+            .withInputRecords(INPUT_RECORDS)
             .build();
 
         // WHEN
@@ -96,7 +102,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         wait(Duration.ofMinutes(3));
 
         // THEN
-        assertThat(deltaLog)
+        assertThat(userTable.getDeltaLog())
             .sinceVersion(initialDeltaVersion)
             .hasCheckpointsCount(2)
             .hasLastCheckpointFile();
@@ -106,9 +112,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         return JobParametersBuilder.builder()
             .withName(getTestDisplayName())
             .withJarId(jarId)
-            .withEntryPointClassName(JOB_MAIN_CLASS)
-            .withParallelism(PARALLELISM)
-            .withInputRecords(INPUT_RECORDS);
+            .withEntryPointClassName(JOB_MAIN_CLASS);
     }
 
 }

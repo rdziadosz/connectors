@@ -23,7 +23,7 @@ import java.time.Duration;
 import io.delta.flink.e2e.DeltaConnectorEndToEndTestBase;
 import io.delta.flink.e2e.client.parameters.JobParameters;
 import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
-import io.delta.flink.e2e.utils.HadoopConfig;
+import io.delta.flink.e2e.data.UserDeltaTable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -32,8 +32,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import static io.delta.flink.e2e.assertions.DeltaLogAssertions.assertThat;
-
-import io.delta.standalone.DeltaLog;
+import static io.delta.flink.e2e.data.UserBuilder.anUser;
 
 @RunWith(Parameterized.class)
 @DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
@@ -45,19 +44,28 @@ class DeltaSinkBatchEndToEndTest extends DeltaConnectorEndToEndTestBase {
 
 
     @DisplayName("Connector in batch mode should add new records to the Delta Table")
-    @ParameterizedTest(name = "partitioned table: {1}; failover: {0}")
+    @ParameterizedTest(name = "partitioned table: {0}; failover: {1}")
     @CsvSource(value = {"false,false", "true,false", "false,true", "true,true"})
-    void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
+    void shouldAddNewRecords(boolean isPartitioned, boolean triggerFailover) throws Exception {
         // GIVEN
-        String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
-        DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
-        long initialDeltaVersion = deltaLog.snapshot().getVersion();
-        int initialRecordCount = parquetFileReader.readRecursively(tablePath).size();
+        UserDeltaTable userTable = isPartitioned
+            ? UserDeltaTable.partitionedByCountryAndBirthYear(deltaTableLocation)
+            : UserDeltaTable.nonPartitioned(deltaTableLocation);
+        userTable.initializeTable();
+        userTable.add(
+            anUser().name("Jan").surname("Kowalski").country("PL").birthYear(1974).build(),
+            anUser().name("Anna").surname("Nowak").country("PL").birthYear(1973).build(),
+            anUser().name("John").surname("Smith").country("US").birthYear(1975).build(),
+            anUser().name("Mary").surname("Johnson").country("US").birthYear(1975).build()
+        );
+        long initialDeltaVersion = userTable.getDeltaLog().snapshot().getVersion();
         // AND
         JobParameters jobParameters = batchJobParameters()
-            .withDeltaTablePath(tablePath)
+            .withDeltaTablePath(userTable.getTablePath())
             .withTablePartitioned(isPartitioned)
             .withTriggerFailover(triggerFailover)
+            .withParallelism(PARALLELISM)
+            .withInputRecords(INPUT_RECORDS)
             .build();
 
         // WHEN
@@ -65,9 +73,9 @@ class DeltaSinkBatchEndToEndTest extends DeltaConnectorEndToEndTestBase {
         wait(Duration.ofMinutes(3));
 
         // THEN
-        assertThat(deltaLog)
+        assertThat(userTable.getDeltaLog())
             .sinceVersion(initialDeltaVersion)
-            .hasRecordCountInParquetFiles(initialRecordCount + INPUT_RECORDS)
+            .hasRecordCountInParquetFiles(4 + INPUT_RECORDS)
             .hasNewRecordCountInOperationMetrics(INPUT_RECORDS)
             .metricsNewFileCountMatchesSnapshotNewFileCount()
             .hasPositiveNumOutputBytesInEachVersion();
@@ -77,8 +85,6 @@ class DeltaSinkBatchEndToEndTest extends DeltaConnectorEndToEndTestBase {
         return JobParametersBuilder.builder()
             .withName(getTestDisplayName())
             .withJarId(jarId)
-            .withEntryPointClassName(JOB_MAIN_CLASS)
-            .withParallelism(PARALLELISM)
-            .withInputRecords(INPUT_RECORDS);
+            .withEntryPointClassName(JOB_MAIN_CLASS);
     }
 }

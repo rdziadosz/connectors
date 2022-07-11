@@ -18,7 +18,7 @@
 
 package io.delta.flink.e2e.sink;
 
-import io.delta.flink.e2e.datagenerator.TestRowTypes;
+import io.delta.flink.e2e.datagenerator.TestRowType;
 import io.delta.flink.sink.DeltaSink;
 import io.delta.flink.sink.internal.DeltaSinkInternal;
 import org.apache.flink.core.fs.Path;
@@ -32,15 +32,15 @@ class DeltaSinkFactory {
             return DeltaSink.forRowData(
                     new Path(deltaTablePath),
                     getHadoopConf(),
-                    TestRowTypes.TEST_PARTITIONED_ROW_TYPE
+                    TestRowType.ROW_TYPE
                 )
-                .withPartitionColumns("col1", "col2")
+                .withPartitionColumns("country", "birthYear")
                 .build();
         } else {
             return DeltaSink.forRowData(
                     new Path(deltaTablePath),
                     getHadoopConf(),
-                    TestRowTypes.TEST_ROW_TYPE
+                    TestRowType.ROW_TYPE
                 )
                 .build();
         }
