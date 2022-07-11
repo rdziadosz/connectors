@@ -762,7 +762,6 @@ lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fat
   )
 
 lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
-  .dependsOn(flink % "test->test")
   .dependsOn(standalone)
   .settings(
     name := "flink-end-to-end-tests",
@@ -770,15 +769,20 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
     skipReleaseSettings,
     fork := false,  // FIXME: Cannot pass environment variables to fork
     libraryDependencies ++= Seq(
-      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
-      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
-      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
-      "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
-      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
-      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "test",
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test",
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "test",
+      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
       "org.awaitility" % "awaitility" % "4.2.0" % "test",
       "com.squareup.okhttp3" % "okhttp" % "4.10.0" % "test",
+      "org.apache.parquet" % "parquet-avro" % "1.12.3" % "test",
+      "org.junit.vintage" % "junit-vintage-engine" % "5.8.2" % "test",
+      "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
+      "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
+      "io.github.artsok" % "rerunner-jupiter" % "2.1.6" % "test",
     ),
     Test / logBuffered := false
   )

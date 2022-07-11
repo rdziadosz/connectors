@@ -24,7 +24,6 @@ import io.delta.flink.e2e.DeltaConnectorEndToEndTestBase;
 import io.delta.flink.e2e.client.parameters.JobParameters;
 import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
 import io.delta.flink.e2e.utils.HadoopConfig;
-import io.delta.flink.utils.TestParquetReader;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -54,7 +53,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
         DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
         // AND
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
-        int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
+        int initialRecordCount = parquetFileReader.readRecursively(tablePath).size();
         // AND
         JobParameters jobParameters = streamingJobParameters()
             .withDeltaTablePath(tablePath)

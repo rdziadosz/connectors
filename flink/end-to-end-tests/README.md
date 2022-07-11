@@ -53,7 +53,7 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
    ./flink/end-to-end-tests/run-end-to-end-tests.sh \
        --s3-bucket-name delta-flink-connector-e2e \
        --aws-region us-west-2 \
-       --test-data-local-path ./flink/src/test/resources/test-data/ \
+       --test-data-local-path ./flink/end-to-end-tests/src/test/resources/test-data/ \
        --scala-version 2.12.8
    ```
    By default, the script removes all infrastructure components, including test Delta Lake table in S3 and Flink job

@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import io.delta.flink.e2e.client.FlinkClient;
 import io.delta.flink.e2e.client.FlinkClientFactory;
+import io.delta.flink.e2e.parquet.AvroParquetFileReader;
+import io.delta.flink.e2e.utils.HadoopConfig;
 import org.apache.flink.api.common.JobID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -57,6 +59,9 @@ public abstract class DeltaConnectorEndToEndTestBase {
     protected JobID jobID;
 
     protected TestInfo testInfo;
+
+    protected AvroParquetFileReader parquetFileReader =
+        new AvroParquetFileReader(HadoopConfig.get());
 
 
     @BeforeAll

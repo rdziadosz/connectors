@@ -25,7 +25,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.LongStream;
 
-import io.delta.flink.utils.TestParquetReader;
+import io.delta.flink.e2e.parquet.AvroParquetFileReader;
+import io.delta.flink.e2e.utils.HadoopConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -102,7 +103,9 @@ public class DeltaLogAssertions {
 
         public DeltaLogAsserter hasRecordCountInParquetFiles(int expectedRecordCount)
             throws IOException {
-            int actualRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
+            int actualRecordCount = new AvroParquetFileReader(HadoopConfig.get())
+                .readRecursively(deltaLog.getPath().toString())
+                .size();
             assertEquals(expectedRecordCount, actualRecordCount);
             return this;
         }
