@@ -32,7 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static io.delta.flink.assertions.DeltaLogAssertions.assertThat;
+import static io.delta.flink.e2e.assertions.DeltaLogAssertions.assertThat;
 
 import io.delta.standalone.DeltaLog;
 

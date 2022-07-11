@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.delta.flink.assertions;
+package io.delta.flink.e2e.assertions;
 
 import java.io.IOException;
 import java.util.HashSet;
