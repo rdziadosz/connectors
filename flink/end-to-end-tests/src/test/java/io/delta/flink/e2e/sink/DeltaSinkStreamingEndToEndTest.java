@@ -23,7 +23,7 @@ import java.time.Duration;
 import io.delta.flink.e2e.DeltaConnectorEndToEndTestBase;
 import io.delta.flink.e2e.client.parameters.JobParameters;
 import io.delta.flink.e2e.client.parameters.JobParametersBuilder;
-import io.delta.flink.utils.DeltaTestUtils;
+import io.delta.flink.e2e.utils.HadoopConfig;
 import io.delta.flink.utils.TestParquetReader;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -51,7 +51,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
     void shouldAddNewRecords(boolean triggerFailover, boolean isPartitioned) throws Exception {
         // GIVEN
         String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
-        DeltaLog deltaLog = DeltaLog.forTable(DeltaTestUtils.getHadoopConf(), tablePath);
+        DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
         // AND
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         int initialRecordCount = TestParquetReader.readAndValidateAllTableRecords(deltaLog);
@@ -82,7 +82,7 @@ class DeltaSinkStreamingEndToEndTest extends DeltaConnectorEndToEndTestBase {
     void shouldCreateCheckpoints(boolean triggerFailover, boolean isPartitioned) throws Exception {
         // GIVEN
         String tablePath = isPartitioned ? getPartitionedTablePath() : getNonPartitionedTablePath();
-        DeltaLog deltaLog = DeltaLog.forTable(DeltaTestUtils.getHadoopConf(), tablePath);
+        DeltaLog deltaLog = DeltaLog.forTable(HadoopConfig.get(), tablePath);
         // AND
         long initialDeltaVersion = deltaLog.snapshot().getVersion();
         // AND
