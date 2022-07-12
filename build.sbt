@@ -783,6 +783,7 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
       "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "io.github.artsok" % "rerunner-jupiter" % "2.1.6" % "test",
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.12.1" % "test",
     ),
     Test / logBuffered := false
   )
