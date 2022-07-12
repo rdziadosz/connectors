@@ -30,10 +30,6 @@ public class TestParameters {
         return getEnvProperty("E2E_S3_BUCKET_NAME");
     }
 
-    public static String getTestDataLocalPath() {
-        return getEnvProperty("E2E_TEST_DATA_LOCAL_PATH");
-    }
-
     public static String getJobManagerHost() {
         return getEnvProperty("E2E_JOBMANAGER_HOSTNAME");
     }

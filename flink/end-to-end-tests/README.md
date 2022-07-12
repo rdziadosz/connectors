@@ -5,18 +5,20 @@
 Connector end-to-end tests are executed on AWS infrastructure in order to identify potential bugs automatically at the
 early development stage. The test infrastructure is created with Terraform:
 
- * An S3 bucket containing test Delta tables.
- * An AWS ECS service which consists of a Flink JobManager and Flink TaskManager containers.
+* An S3 bucket containing test Delta tables.
+* An AWS ECS service which consists of a Flink JobManager and Flink TaskManager containers.
 
-The Flink cluster runs in [Session Mode](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode),
+The Flink cluster runs
+in [Session Mode](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode),
 that is, there is a standalone cluster which can accept multiple jobs during its lifecycle. The infrastructure is
 created once before running the tests, and destroyed when the tests finish.
 
 Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all steps, including:
- 1. Builds test artifact. `flink/end-to-end-tests-fatjar` module contains test jobs definitions.
- 2. Creates AWS infrastructure with Terraform.
- 3. Runs tests. Test implementations are located in `flink/end-to-end-tests` module.
- 4. Destroys infrastructure after tests finish.
+
+1. Builds test artifact. `flink/end-to-end-tests-fatjar` module contains test jobs definitions.
+2. Creates AWS infrastructure with Terraform.
+3. Runs tests. Test implementations are located in `flink/end-to-end-tests` module.
+4. Destroys infrastructure after tests finish.
 
 ## Manual run
 
@@ -53,7 +55,6 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
    ./flink/end-to-end-tests/run-end-to-end-tests.sh \
        --s3-bucket-name delta-flink-connector-e2e \
        --aws-region us-west-2 \
-       --test-data-local-path ./flink/end-to-end-tests/src/test/resources/test-data/ \
        --scala-version 2.12.8
    ```
    By default, the script removes all infrastructure components, including test Delta Lake table in S3 and Flink job
@@ -62,7 +63,6 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
    ./flink/end-to-end-tests/run-end-to-end-tests.sh \
        --s3-bucket-name delta-flink-connector-e2e \
        --aws-region us-west-2 \
-       --test-data-local-path ./flink/end-to-end-tests/src/test/resources/test-data/ \
        --scala-version 2.12.8 \
        --preserve-s3-data \
        --preserve-cloudwatch-logs
