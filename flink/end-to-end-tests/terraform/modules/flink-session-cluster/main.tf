@@ -238,8 +238,7 @@ resource "aws_iam_role_policy" "flink_session_cluster_task" {
             ],
             "Resource": [
                 "arn:aws:s3:::${var.test_data_bucket_name}/*",
-                "arn:aws:s3:::${var.test_data_bucket_name}",
-                "arn:aws:s3:::*"
+                "arn:aws:s3:::${var.test_data_bucket_name}"
             ]
         }
     ]
