@@ -1,11 +1,24 @@
-output "jobmanager_hostname" {
-  value = module.flink_session_cluster.jobmanager_hostname
+output "eks_cluster_name" {
+  value = module.flink_session_cluster.cluster_name
 }
 
-output "jobmanager_port" {
-  value = module.flink_session_cluster.jobmanager_port
+output "eks_cluster_endpoint" {
+  value = module.flink_session_cluster.cluster_endpoint
 }
 
-output "jobmanager_address" {
-  value = module.flink_session_cluster.jobmanager_address
+output "account_id" {
+  value = module.flink_session_cluster.account_id
+}
+
+output "region" {
+  value = module.flink_session_cluster.region
+}
+
+output "service_account_role_name" {
+  value = module.flink_session_cluster.container_role
+}
+
+
+output "test_data_bucket_name" {
+  value = module.storage.test_data_bucket_name
 }

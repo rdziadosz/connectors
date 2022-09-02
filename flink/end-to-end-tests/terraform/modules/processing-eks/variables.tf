@@ -1,16 +1,12 @@
-variable "region" {
-  type = string
-}
-
-variable "availability_zone1" {
-  type = string
-}
-
-variable "availability_zone2" {
+variable "run_id" {
   type = string
 }
 
 variable "vpc_id" {
+  type = string
+}
+
+variable "region" {
   type = string
 }
 
@@ -26,8 +22,8 @@ variable "test_data_bucket_name" {
   type = string
 }
 
-variable "cloudwatch_group_id" {
-  type = string
+variable "eks_workers" {
+  type = number
 }
 
 variable "tags" {

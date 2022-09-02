@@ -16,10 +16,14 @@
 # limitations under the License.
 #
 
+# todo: for debugging; remove it later
+set -x
+
 RELATIVE_SCRIPT_PATH=$(dirname -- "${BASH_SOURCE[0]:-$0}")
 WORKDIR=$(realpath "$RELATIVE_SCRIPT_PATH")
 PROJECT_ROOT_DIR="$WORKDIR/../../"
 TERRAFORM_DIR="$WORKDIR/terraform/"
+KUBERNETES_DIR="$TERRAFORM_DIR/kubernetes/"
 
 build_artifact() {
   cd "$PROJECT_ROOT_DIR" || exit
@@ -64,13 +68,57 @@ destroy_terraform_infrastructure() {
   terraform -chdir="$TERRAFORM_DIR" destroy -auto-approve $targets
 }
 
-export_jobmanager_address() {
-  local jobmanager_hostname
-  local jobmanager_port
-  jobmanager_hostname=$(terraform -chdir="$TERRAFORM_DIR" output jobmanager_hostname | tr -d '"')
-  jobmanager_port=$(terraform -chdir="$TERRAFORM_DIR" output jobmanager_port)
-  export JOBMANAGER_HOSTNAME=$jobmanager_hostname
-  export JOBMANAGER_PORT=$jobmanager_port
+export_terraform_outputs() {
+  local account_id
+  local region
+  local role_name
+  local eks_cluster_name
+  local test_data_bucket_name
+  account_id=$(terraform -chdir="$TERRAFORM_DIR" output account_id | tr -d '"')
+  region=$(terraform -chdir="$TERRAFORM_DIR" output region | tr -d '"')
+  role_name=$(terraform -chdir="$TERRAFORM_DIR" output service_account_role_name | tr -d '"')
+  eks_cluster_name=$(terraform -chdir="$TERRAFORM_DIR" output eks_cluster_name | tr -d '"')
+  test_data_bucket_name=$(terraform -chdir="$TERRAFORM_DIR" output test_data_bucket_name | tr -d '"')
+  export ACCOUNT_ID=$account_id
+  export AWS_REGION=$region
+  export SERVICE_ACCOUNT_ROLE_NAME=$role_name
+  export EKS_CLUSTER_NAME=$eks_cluster_name
+  export TEST_DATA_BUCKET_NAME=$test_data_bucket_name
+}
+
+create_kubernetes_infrastructure() {
+  aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+  kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+
+  until kubectl -n cert-manager get pods -o go-template='{{.items | len}}' | grep -qxF 3; do
+    echo "Wait for pods (cert-manager)"
+    sleep 1
+  done
+  kubectl wait -n cert-manager --for=condition=ready pods --all --timeout=300s
+
+  helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
+  helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --replace
+
+# todo: kubectl wait
+  sleep 30
+  envsubst <"$KUBERNETES_DIR"/kubernetes.yaml | kubectl apply -f -
+  local return_code=$?
+
+  return $return_code
+}
+
+jobmanager_port_forward() {
+  export JOBMANAGER_HOSTNAME=localhost
+  export JOBMANAGER_PORT=8081
+
+  local port_forward_pid
+  until kubectl -n flink-tests get pod -l app=basic-session -o go-template='{{.items | len}}' | grep -qxF 1; do
+    echo "Wait for pod"
+    sleep 1
+  done
+  kubectl wait -n flink-tests --for=condition=ready pod -l app=basic-session --timeout=300s
+  (kubectl -n flink-tests port-forward svc/basic-session-rest 8081) & port_forward_pid=$!
+  export PORT_FORWARD_PID=$port_forward_pid
 }
 
 run_end_to_end_tests() {
@@ -78,7 +126,7 @@ run_end_to_end_tests() {
   cd "$PROJECT_ROOT_DIR" || exit
 
   echo "JAR_PATH=$JAR_PATH"
-  echo "S3_BUCKET_NAME=$S3_BUCKET_NAME"
+  echo "S3_BUCKET_NAME=$TEST_DATA_BUCKET_NAME"
   echo "PRESERVE_S3_DATA=$PRESERVE_S3_DATA"
   echo "AWS_REGION=$AWS_REGION"
   echo "JOBMANAGER_HOSTNAME=$JOBMANAGER_HOSTNAME"
@@ -86,7 +134,7 @@ run_end_to_end_tests() {
 
   build/sbt "++ $SCALA_VERSION" \
     -DE2E_JAR_PATH="$JAR_PATH" \
-    -DE2E_S3_BUCKET_NAME="$S3_BUCKET_NAME" \
+    -DE2E_S3_BUCKET_NAME="$TEST_DATA_BUCKET_NAME" \
     -DE2E_PRESERVE_S3_DATA="$PRESERVE_S3_DATA" \
     -DE2E_AWS_REGION="$AWS_REGION" \
     -DE2E_JOBMANAGER_HOSTNAME="$JOBMANAGER_HOSTNAME" \
@@ -100,22 +148,8 @@ run_end_to_end_tests() {
 main() {
   while [[ $# -gt 0 ]]; do
     case $1 in
-    --s3-bucket-name)
-      S3_BUCKET_NAME="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --aws-region)
-      AWS_REGION="$2"
-      shift # past argument
-      shift # past value
-      ;;
     --preserve-s3-data)
       PRESERVE_S3_DATA="yes"
-      shift # past argument
-      ;;
-    --preserve-cloudwatch-logs)
-      PRESERVE_CLOUDWATCH_LOGS="yes"
       shift # past argument
       ;;
     --scala-version)
@@ -150,7 +184,17 @@ main() {
     exit 1
   fi
 
-  if ! export_jobmanager_address; then
+  if ! export_terraform_outputs; then
+    echo "[ERROR] Failed to extract variables."
+    exit 1
+  fi
+
+  if ! create_kubernetes_infrastructure; then
+    echo "[ERROR] Failed to create kubernetes infrastructure."
+    exit 1
+  fi
+
+  if ! jobmanager_port_forward; then
     echo "[ERROR] Failed to extract Flink JobManager address."
     exit 1
   fi
@@ -163,7 +207,10 @@ main() {
 
 cleanup() {
   echo "Clean up..."
+  kill $PORT_FORWARD_PID || echo "Port forward is not running"
+  helm uninstall flink-kubernetes-operator
   cd "$WORKDIR" || exit 1
+  kubectl config unset current-context
   destroy_terraform_infrastructure
 }
 

@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flink-tests
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: flink-tests
+  name: flink-tests-sa
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::${ACCOUNT_ID}:role/${SERVICE_ACCOUNT_ROLE_NAME}"
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: flink-tests
+  name: flink-tests
+rules:
+  - apiGroups: ["", "apps"]
+    resources: ["pods", "services", "configmaps", "persistentvolumeclaims", "deployments"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: flink-tests
+  name: flink-tests-role-binding
+roleRef:
+  kind: Role
+  name: flink-tests
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: flink-tests-sa
+  namespace: flink-tests
+
+---
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: basic-session
+  namespace: flink-tests
+  labels:
+    app: waitwait
+spec:
+  image: flink:1.15
+  flinkVersion: v1_15
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+  serviceAccount: flink-tests-sa
+  jobManager:
+    replicas: 1
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    replicas: 2
+    resource:
+      memory: "2048m"
+      cpu: 1
