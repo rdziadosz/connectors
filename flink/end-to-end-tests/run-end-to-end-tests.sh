@@ -16,9 +16,6 @@
 # limitations under the License.
 #
 
-# todo: for debugging; remove it later
-set -x
-
 RELATIVE_SCRIPT_PATH=$(dirname -- "${BASH_SOURCE[0]:-$0}")
 WORKDIR=$(realpath "$RELATIVE_SCRIPT_PATH")
 PROJECT_ROOT_DIR="$WORKDIR/../../"
@@ -61,35 +58,25 @@ destroy_terraform_infrastructure() {
   if [ "$PRESERVE_S3_DATA" != "yes" ]; then
     targets="$targets -target=module.storage"
   fi
-  if [ "$PRESERVE_CLOUDWATCH_LOGS" != "yes" ]; then
-    targets="$targets -target=module.cloudwatch"
-  fi
   echo "Destroying terraform infrastructure."
   terraform -chdir="$TERRAFORM_DIR" destroy -auto-approve $targets
 }
 
 export_terraform_outputs() {
-  local account_id
-  local region
-  local role_name
-  local eks_cluster_name
-  local test_data_bucket_name
-  account_id=$(terraform -chdir="$TERRAFORM_DIR" output account_id | tr -d '"')
-  region=$(terraform -chdir="$TERRAFORM_DIR" output region | tr -d '"')
-  role_name=$(terraform -chdir="$TERRAFORM_DIR" output service_account_role_name | tr -d '"')
-  eks_cluster_name=$(terraform -chdir="$TERRAFORM_DIR" output eks_cluster_name | tr -d '"')
-  test_data_bucket_name=$(terraform -chdir="$TERRAFORM_DIR" output test_data_bucket_name | tr -d '"')
-  export ACCOUNT_ID=$account_id
-  export AWS_REGION=$region
-  export SERVICE_ACCOUNT_ROLE_NAME=$role_name
-  export EKS_CLUSTER_NAME=$eks_cluster_name
-  export TEST_DATA_BUCKET_NAME=$test_data_bucket_name
+  export ACCOUNT_ID=$(terraform -chdir="$TERRAFORM_DIR" output account_id | tr -d '"')
+  export AWS_REGION=$(terraform -chdir="$TERRAFORM_DIR" output region | tr -d '"')
+  export SERVICE_ACCOUNT_ROLE_NAME=$(terraform -chdir="$TERRAFORM_DIR" output service_account_role_name | tr -d '"')
+  export EKS_CLUSTER_NAME=$(terraform -chdir="$TERRAFORM_DIR" output eks_cluster_name | tr -d '"')
+  export TEST_DATA_BUCKET_NAME=$(terraform -chdir="$TERRAFORM_DIR" output test_data_bucket_name | tr -d '"')
+  export CREDENTIALS_ACCESS_KEY_ID=$(terraform -chdir="$TERRAFORM_DIR" output access_key | tr -d '"' | base64)
+  export CREDENTIALS_SECRET_KEY=$(terraform -chdir="$TERRAFORM_DIR" output secret_key | tr -d '"' | base64)
 }
 
 create_kubernetes_infrastructure() {
   aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
   kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
 
+  # First wait until kubernetes pod is created, and then until it is ready.
   until kubectl -n cert-manager get pods -o go-template='{{.items | len}}' | grep -qxF 3; do
     echo "Wait for pods (cert-manager)"
     sleep 1
@@ -99,8 +86,12 @@ create_kubernetes_infrastructure() {
   helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
   helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --replace
 
-# todo: kubectl wait
-  sleep 30
+  until kubectl -n default get pods -l app.kubernetes.io/name=flink-kubernetes-operator -o go-template='{{.items | len}}' | grep -qxF 1; do
+    echo "Wait for pod (flink-kubernetes-operator)"
+    sleep 1
+  done
+  kubectl wait -n default --for=condition=ready pods --all -l app.kubernetes.io/name=flink-kubernetes-operator
+
   envsubst <"$KUBERNETES_DIR"/kubernetes.yaml | kubectl apply -f -
   local return_code=$?
 
@@ -117,8 +108,7 @@ jobmanager_port_forward() {
     sleep 1
   done
   kubectl wait -n flink-tests --for=condition=ready pod -l app=basic-session --timeout=300s
-  (kubectl -n flink-tests port-forward svc/basic-session-rest 8081) & port_forward_pid=$!
-  export PORT_FORWARD_PID=$port_forward_pid
+  (kubectl -n flink-tests port-forward svc/basic-session-rest 8081) & export PORT_FORWARD_PID=$!
 }
 
 run_end_to_end_tests() {
@@ -131,6 +121,7 @@ run_end_to_end_tests() {
   echo "AWS_REGION=$AWS_REGION"
   echo "JOBMANAGER_HOSTNAME=$JOBMANAGER_HOSTNAME"
   echo "JOBMANAGER_PORT=$JOBMANAGER_PORT"
+  echo "CREDENTIALS_ACCESS_KEY_ID=$CREDENTIALS_ACCESS_KEY_ID"
 
   build/sbt "++ $SCALA_VERSION" \
     -DE2E_JAR_PATH="$JAR_PATH" \
@@ -209,8 +200,8 @@ cleanup() {
   echo "Clean up..."
   kill $PORT_FORWARD_PID || echo "Port forward is not running"
   helm uninstall flink-kubernetes-operator
-  cd "$WORKDIR" || exit 1
   kubectl config unset current-context
+  cd "$WORKDIR" || exit 1
   destroy_terraform_infrastructure
 }
 

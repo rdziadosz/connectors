@@ -6,6 +6,16 @@ metadata:
 
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  namespace: flink-tests
+  name: aws-credentials
+type: Opaque
+data:
+  id: ${CREDENTIALS_ACCESS_KEY_ID}
+  key: ${CREDENTIALS_SECRET_KEY}
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: flink-tests
@@ -46,11 +56,9 @@ kind: FlinkDeployment
 metadata:
   name: basic-session
   namespace: flink-tests
-  labels:
-    app: waitwait
 spec:
-  image: flink:1.15
-  flinkVersion: v1_15
+  image: flink:1.13.0
+  flinkVersion: v1_13
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
   serviceAccount: flink-tests-sa
@@ -59,8 +67,48 @@ spec:
     resource:
       memory: "2048m"
       cpu: 1
+    podTemplate:
+      spec:
+        containers:
+          # Do not change the main container name
+          - name: flink-main-container
+            env:
+              - name: ENABLE_BUILT_IN_PLUGINS
+                value: flink-s3-fs-hadoop-1.13.0.jar
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: id
+                    optional: false
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: key
+                    optional: false
   taskManager:
     replicas: 2
     resource:
       memory: "2048m"
       cpu: 1
+    podTemplate:
+      spec:
+        containers:
+          # Do not change the main container name
+          - name: flink-main-container
+            env:
+              - name: ENABLE_BUILT_IN_PLUGINS
+                value: flink-s3-fs-hadoop-1.13.0.jar
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: id
+                    optional: false
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: key
+                    optional: false

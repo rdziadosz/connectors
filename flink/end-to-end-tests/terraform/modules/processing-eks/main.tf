@@ -104,6 +104,47 @@ resource "aws_launch_template" "egde_node" {
 
 /* ========== IAM ========== */
 
+resource "aws_iam_access_key" "user" {
+  user    = aws_iam_user.user.name
+}
+
+resource "aws_iam_user" "user" {
+  name = "flink-tests-user"
+  path = "/"
+}
+
+resource "aws_iam_user_policy" "user_policy" {
+  name = "flink-tests-user-policy"
+  user = aws_iam_user.user.name
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::${var.test_data_bucket_name}"
+            ],
+            "Action": [
+                "s3:ListBucket"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Resource": "arn:aws:s3:::${var.test_data_bucket_name}/*",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+
 resource "aws_iam_role" "flink-tests" {
   name = "flink-tests-eks-cluster-role-${var.run_id}"
 
@@ -223,7 +264,9 @@ resource "aws_iam_role_policy" "flink-tests_container_role_policy" {
             "Effect": "Allow",
             "Resource": "arn:aws:s3:::${var.test_data_bucket_name}/*",
             "Action": [
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
             ]
         }
     ]

@@ -18,6 +18,14 @@ output "service_account_role_name" {
   value = module.flink_session_cluster.container_role
 }
 
+output "secret_key" {
+  value = module.flink_session_cluster.secret_key
+  sensitive   = true
+}
+
+output "access_key" {
+  value = module.flink_session_cluster.access_key
+}
 
 output "test_data_bucket_name" {
   value = module.storage.test_data_bucket_name

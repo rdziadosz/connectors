@@ -22,3 +22,12 @@ output "certificate_authority_data" {
 output "container_role" {
   value = aws_iam_role.container_role.name
 }
+
+output "secret_key" {
+  value = aws_iam_access_key.user.secret
+  sensitive   = true
+}
+
+output "access_key" {
+  value = aws_iam_access_key.user.id
+}

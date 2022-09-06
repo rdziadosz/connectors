@@ -52,7 +52,7 @@ class DeltaSinkFactory {
         conf.set("io.delta.standalone.PARQUET_DATA_TIME_ZONE_ID", "UTC");
         conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
         conf.set("fs.s3a.aws.credentials.provider",
-            "com.amazonaws.auth.ContainerCredentialsProvider");
+            "com.amazonaws.auth.EnvironmentVariableCredentialsProvider");
         return conf;
     }
 

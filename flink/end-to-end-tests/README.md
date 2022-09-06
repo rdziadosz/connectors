@@ -1,5 +1,39 @@
 # Flink Delta Connector end-to-end tests
 
+## Implementation plan
+In order to make code review easier, the implementation of end-to-end tests should be divided into multiple pull requests. We plan to do it in the following steps (some of them can be done in parallel):
+
+PR-01: Project skeleton.
+- Shows how the project structure looks like.
+- Add sbt modules (tests + fatjar).
+- Add a smoke test (does not schedule any flink job actually).
+- Add terraform skeleton (almost empty).
+- Add run-end-to-end-tests.sh script.
+
+PR-02-A: Terraform.
+- Add terraform creating all necessary infrastructure in AWS.
+
+PR-02-B: Flink REST Client.
+- Java implementation of a client for job scheduling.
+
+PR-03-A: Add bounded reader test scenarios.
+- Add corresponding Flink job.
+- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
+
+PR-03-B: Add bounded writer test scenarios.
+- Add corresponding Flink job.
+- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
+
+PR-04-A: Add unbounded reader test scenarios.
+- Add corresponding Flink job.
+- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
+
+PR-04-B: Add unbounded writer test scenarios.
+- Add corresponding Flink job.
+- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
+
+PR-05: Enable to run tests in parallel.
+
 ## Design
 
 Connector end-to-end tests are executed on AWS infrastructure in order to identify potential bugs automatically at the
@@ -74,7 +108,6 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
    If you would like to preserve them, you can specify additional flags:
    ```bash
    ./flink/end-to-end-tests/run-end-to-end-tests.sh \
-       --s3-bucket-name delta-flink-connector-e2e \
        --scala-version 2.12.8 \
        --preserve-s3-data
    ```
@@ -83,3 +116,31 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
    cd flink/end-to-end-tests/terraform/
    terraform destroy -auto-approve
    ```
+
+## Test scenarios
+### Sink
+1. Batch job successfully writes records to a \[partitioned / non-partitioned] Delta Lake table.
+2. Streaming job successfully writes records to a \[partitioned / non-partitioned] Delta Lake table.
+3. Batch job successfully writes records to a \[partitioned / non-partitioned] Delta Lake even if the job has recovered after a failure.
+4. Streaming job successfully writes records to a \[partitioned / non-partitioned] Delta Lake even if the job has recovered after a failure from a checkpoint.
+5. Streaming job creates Delta Lake checkpoint successfully.
+
+
+### Source
+1. Batch job correctly reads the latest Delta Lake snapshot.
+2. Batch job correctly reads specified Delta Lake snapshot version (startingVersion()).
+3. Batch job reads correctly the latest Delta Lake snapshot created before a given timestamp (startingTimestamp()).
+4. Batch job correctly reads partitioned Delta Lake table.
+5. Batch job correctly reads only selected column names (columnNames()).
+6. Batch job correctly reads Delta Lake snapshot even if the job recovered from a failure.
+7. Streaming job reads head snapshot and subsequent new changes to the Delta Lake table.
+8. Streaming job reads given snapshot version (startingVersion()) and subsequent new changes to the Delta Lake table.
+9. Streaming job reads the earliest Delta Lake snapshot created after a given timestamp (startingTimestamp()) and subsequent new changes to the Delta Lake table.
+10. Streaming job correctly reads a partitioned Delta Lake table.
+11. Streaming job correctly reads only selected column names (columnNames()).
+12. Streaming job fails when ignoreDeletes(false) and there were deletes in the Delta Lake table.
+13. Streaming job fails when ignoreChanges(false) and there were deletes or updates in the Delta Lake table.
+14. Streaming job correctly reads Delta Lake table when ignoreDeletes(true) and there were deletes in the Delta Lake table.
+15. Streaming job fails when ignoreChanges(true) and there were deletes or updates in the Delta Lake table.
+16. Streaming job correctly reads Delta Lake snapshot and subsequent new changes even if the job recovered from a failure.
+17. \[Streaming/Batch] job fails when reading the Delta Lake table if startingVersion was previously removed using vacuum.
