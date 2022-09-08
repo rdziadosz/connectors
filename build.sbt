@@ -786,13 +786,18 @@ lazy val flink = (project in file("flink"))
     (Test / test) := ((Test / test) dependsOn (Compile / unidoc)).value
   )
 
+/**
+ * This module contains the definitions of the Flink jobs that are necessary to perform end-to-end testing.
+ * When running end-to-end tests, the jar file is uploaded to the Flink cluster and the jobs contained in this
+ * module are executed.
+ */
 lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fatjar"))
   .dependsOn(flink)
   .dependsOn(standalone)
   .settings(
     name := "flink-end-to-end-tests-fatjar",
     commonSettings,
-    releaseSettings,
+    skipReleaseSettings,
     libraryDependencies ++= Seq(
       "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
@@ -807,6 +812,10 @@ lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fat
     }
   )
 
+/**
+ * This module contains the test cases. During test execution, it uploads the jar file containing job
+ * definitions to Flink cluster, schedules Flink jobs and coordinates their work.
+ */
 lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
   .dependsOn(standalone)
   .settings(

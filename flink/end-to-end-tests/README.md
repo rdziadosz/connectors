@@ -1,39 +1,5 @@
 # Flink Delta Connector end-to-end tests
 
-## Implementation plan
-In order to make code review easier, the implementation of end-to-end tests should be divided into multiple pull requests. We plan to do it in the following steps (some of them can be done in parallel):
-
-PR-01: Project skeleton.
-- Shows how the project structure looks like.
-- Add sbt modules (tests + fatjar).
-- Add a smoke test (does not schedule any flink job actually).
-- Add terraform skeleton (almost empty).
-- Add run-end-to-end-tests.sh script.
-
-PR-02-A: Terraform.
-- Add terraform creating all necessary infrastructure in AWS.
-
-PR-02-B: Flink REST Client.
-- Java implementation of a client for job scheduling.
-
-PR-03-A: Add bounded reader test scenarios.
-- Add corresponding Flink job.
-- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
-
-PR-03-B: Add bounded writer test scenarios.
-- Add corresponding Flink job.
-- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
-
-PR-04-A: Add unbounded reader test scenarios.
-- Add corresponding Flink job.
-- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
-
-PR-04-B: Add unbounded writer test scenarios.
-- Add corresponding Flink job.
-- Implement job scenarios. Create multiple pull requests if there are lots of test scenarios.
-
-PR-05: Enable to run tests in parallel.
-
 ## Design
 
 Connector end-to-end tests are executed on AWS infrastructure in order to identify potential bugs automatically at the
@@ -63,7 +29,6 @@ Tests are triggered with `run-end-to-end-tests.sh` script. The script covers all
 3. Batch job successfully writes records to a \[partitioned / non-partitioned] Delta Lake even if the job has recovered after a failure.
 4. Streaming job successfully writes records to a \[partitioned / non-partitioned] Delta Lake even if the job has recovered after a failure from a checkpoint.
 5. Streaming job creates Delta Lake checkpoint successfully.
-
 
 ### Source
 1. Batch job correctly reads the latest Delta Lake snapshot.
