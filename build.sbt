@@ -829,7 +829,7 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
       "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "test",
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test",
       "org.apache.flink" % "flink-table-common" % flinkVersion % "test",
-      "org.apache.flink" % ("flink-table-runtime-blink_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
+      "org.apache.flink" % ("flink-table-runtime_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
       "org.junit.vintage" % "junit-vintage-engine" % "5.8.2" % "test",
       "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
