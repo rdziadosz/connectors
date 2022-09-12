@@ -23,6 +23,7 @@ TERRAFORM_DIR="$WORKDIR/terraform/"
 KUBERNETES_DIR="$TERRAFORM_DIR/kubernetes/"
 
 build_artifact() {
+  echo "Building artifact."
   cd "$PROJECT_ROOT_DIR" || exit
   build/sbt "++ $SCALA_VERSION" flinkEndToEndTestsFatJar/assembly
   local return_code=$?
@@ -31,9 +32,17 @@ build_artifact() {
 }
 
 export_fat_jar_path() {
-  echo "Export fat jar path."
-  # FIXME export jar path to JAR_PATH environment variable
-  echo "It will be implemented in the PR-03"
+  echo "Exporting fat jar path."
+  local matching_jar
+  matching_jar=$(find "$WORKDIR"/../end-to-end-tests-fatjar/target/scala-"$SHORT_SCALA_VERSION"/ -iname 'flink-end-to-end-tests-fatjar-assembly-*.jar' -type f)
+
+  if [ -z "$matching_jar" ]; then
+    echo "Cannot find artifact containing test jobs."
+    exit 1
+  else
+    echo "Artifact found at path ${matching_jar[0]}."
+    export JAR_PATH="${matching_jar[0]}"
+  fi
 }
 
 create_terraform_infrastructure() {
@@ -48,7 +57,13 @@ destroy_terraform_infrastructure() {
   echo "It will be implemented in the PR-02-A"
 }
 
-kubernetes_cleanup(){
+create_kubernetes_infrastructure() {
+  echo "Creating kubernetes infrastructure."
+  # FIXME: installing cert-manager and kubernetes-flink-operator, apply kubernetes configuration
+  echo "It will be implemented in the PR-02-A"
+}
+
+kubernetes_cleanup() {
   echo "Kubernetes cleanup."
   # FIXME: uninstall flink-kubernetes-operator, close port-forward, unset kubernetes context
   echo "It will be implemented in the PR-02-A"
@@ -62,12 +77,6 @@ export_terraform_outputs() {
   export TEST_DATA_BUCKET_NAME=$(terraform -chdir="$TERRAFORM_DIR" output test_data_bucket_name | tr -d '"')
   export CREDENTIALS_ACCESS_KEY_ID=$(terraform -chdir="$TERRAFORM_DIR" output access_key | tr -d '"' | base64)
   export CREDENTIALS_SECRET_KEY=$(terraform -chdir="$TERRAFORM_DIR" output secret_key | tr -d '"' | base64)
-}
-
-create_kubernetes_infrastructure() {
-  echo "Creating kubernetes infrastructure."
-  # FIXME: installing cert-manager and kubernetes-flink-operator, apply kubernetes configuration
-  echo "It will be implemented in the PR-02-A"
 }
 
 jobmanager_port_forward() {
