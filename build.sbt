@@ -788,3 +788,57 @@ lazy val flink = (project in file("flink"))
     // Ensure unidoc is run with tests. Must be cleaned before test for unidoc to be generated.
     (Test / test) := ((Test / test) dependsOn (Compile / unidoc)).value
   )
+
+/**
+ * This module contains the definitions of the Flink jobs that are necessary to perform end-to-end testing.
+ * When running end-to-end tests, the jar file is uploaded to the Flink cluster and the jobs contained in this
+ * module are executed.
+ */
+lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fatjar"))
+  .dependsOn(flink)
+  .dependsOn(standalone)
+  .settings(
+    name := "flink-end-to-end-tests-fatjar",
+    commonSettings,
+    skipReleaseSettings,
+    libraryDependencies ++= Seq(
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-table-runtime_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion,
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
+    ),
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+      case x => MergeStrategy.first
+    }
+  )
+
+/**
+ * This module contains the test cases. During test execution, it uploads the jar file containing job
+ * definitions to Flink cluster, schedules Flink jobs and coordinates their work.
+ */
+lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
+  .dependsOn(standalone)
+  .settings(
+    name := "flink-end-to-end-tests",
+    commonSettings,
+    skipReleaseSettings,
+    fork := false,
+    libraryDependencies ++= Seq(
+      "org.apache.flink" % ("flink-clients_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
+      "org.apache.flink" % ("flink-parquet_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "test",
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "test",
+      "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test",
+      "org.apache.flink" % "flink-table-common" % flinkVersion % "test",
+      "org.apache.flink" % ("flink-table-runtime_" + flinkScalaVersion(scalaBinaryVersion.value)) % flinkVersion % "provided",
+      "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
+      "org.junit.vintage" % "junit-vintage-engine" % "5.8.2" % "test",
+      "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
+      "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
+      "io.github.artsok" % "rerunner-jupiter" % "2.1.6" % "test",
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.12.1" % "test",
+    ),
+    Test / logBuffered := false
+  )
