@@ -96,7 +96,6 @@ kubernetes_cleanup() {
 export_terraform_outputs() {
   export ACCOUNT_ID=$(terraform -chdir="$TERRAFORM_DIR" output account_id | tr -d '"')
   export AWS_REGION=$(terraform -chdir="$TERRAFORM_DIR" output region | tr -d '"')
-  export SERVICE_ACCOUNT_ROLE_NAME=$(terraform -chdir="$TERRAFORM_DIR" output service_account_role_name | tr -d '"')
   export EKS_CLUSTER_NAME=$(terraform -chdir="$TERRAFORM_DIR" output eks_cluster_name | tr -d '"')
   export TEST_DATA_BUCKET_NAME=$(terraform -chdir="$TERRAFORM_DIR" output test_data_bucket_name | tr -d '"')
   export CREDENTIALS_ACCESS_KEY_ID=$(terraform -chdir="$TERRAFORM_DIR" output access_key | tr -d '"' | base64)

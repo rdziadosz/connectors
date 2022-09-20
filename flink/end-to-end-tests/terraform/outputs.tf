@@ -14,10 +14,6 @@ output "region" {
   value = module.flink_session_cluster.region
 }
 
-output "service_account_role_name" {
-  value = module.flink_session_cluster.container_role
-}
-
 output "secret_key" {
   value     = module.flink_session_cluster.secret_key
   sensitive = true
