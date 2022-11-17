@@ -55,8 +55,8 @@ metadata:
   name: basic-session
   namespace: flink-tests
 spec:
-  image: flink:1.14.0
-  flinkVersion: v1_14
+  image: flink:1.15.3
+  flinkVersion: v1_15
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
   serviceAccount: flink-tests-sa
@@ -72,7 +72,7 @@ spec:
           - name: flink-main-container
             env:
               - name: ENABLE_BUILT_IN_PLUGINS
-                value: flink-s3-fs-hadoop-1.14.0.jar
+                value: flink-s3-fs-hadoop-1.15.3.jar
               - name: AWS_ACCESS_KEY_ID
                 valueFrom:
                   secretKeyRef:
@@ -97,7 +97,7 @@ spec:
           - name: flink-main-container
             env:
               - name: ENABLE_BUILT_IN_PLUGINS
-                value: flink-s3-fs-hadoop-1.14.0.jar
+                value: flink-s3-fs-hadoop-1.15.3.jar
               - name: AWS_ACCESS_KEY_ID
                 valueFrom:
                   secretKeyRef:
