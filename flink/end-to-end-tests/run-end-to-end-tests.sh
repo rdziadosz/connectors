@@ -127,6 +127,12 @@ run_end_to_end_tests() {
   echo "JOBMANAGER_PORT=$JOBMANAGER_PORT"
 
   build/sbt "++ $SCALA_VERSION" \
+    -DE2E_JAR_PATH="$JAR_PATH" \
+    -DE2E_S3_BUCKET_NAME="$TEST_DATA_BUCKET_NAME" \
+    -DE2E_PRESERVE_S3_DATA="$PRESERVE_S3_DATA" \
+    -DE2E_AWS_REGION="$AWS_REGION" \
+    -DE2E_JOBMANAGER_HOSTNAME="$JOBMANAGER_HOSTNAME" \
+    -DE2E_JOBMANAGER_PORT="$JOBMANAGER_PORT" \
     flinkEndToEndTests/test
   local return_code=$?
   cd "$WORKDIR" || exit

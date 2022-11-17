@@ -99,7 +99,8 @@ class FlinkRestClient implements FlinkClient {
 
     private String[] getArguments(Map<String, String> arguments) {
         return arguments.entrySet().stream()
-                .flatMap(entry -> Stream.of(String.format("--%s", entry.getKey()), entry.getValue()))
+                .flatMap(entry ->
+                        Stream.of(String.format("--%s", entry.getKey()), entry.getValue()))
                 .toArray(String[]::new);
     }
 
