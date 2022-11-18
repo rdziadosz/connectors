@@ -72,7 +72,7 @@ create_kubernetes_infrastructure() {
     echo "Wait for pods (cert-manager)"
     sleep 1
   done
-  kubectl wait -n cert-manager --for=condition=ready pods --all --timeout=300s
+  kubectl wait -n cert-manager --for=condition=ready pods --all --timeout=300s || return 1
 
   helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
   helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --replace
@@ -81,7 +81,7 @@ create_kubernetes_infrastructure() {
     echo "Wait for pod (flink-kubernetes-operator)"
     sleep 1
   done
-  kubectl wait -n default --for=condition=ready pods --all -l app.kubernetes.io/name=flink-kubernetes-operator
+  kubectl wait -n default --for=condition=ready pods --all -l app.kubernetes.io/name=flink-kubernetes-operator || return 1
 
   envsubst <"$KUBERNETES_DIR"/kubernetes.yaml | kubectl apply -f -
 }
@@ -111,7 +111,7 @@ jobmanager_port_forward() {
     echo "Wait for pod"
     sleep 1
   done
-  kubectl wait -n flink-tests --for=condition=ready pod -l app=basic-session --timeout=300s
+  kubectl wait -n flink-tests --for=condition=ready pod -l app=basic-session --timeout=300s || return 1
   (kubectl -n flink-tests port-forward svc/basic-session-rest 8081) &
   export PORT_FORWARD_PID=$!
 }

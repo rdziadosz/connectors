@@ -806,8 +806,12 @@ lazy val flinkEndToEndTestsFatJar = (project in file("flink/end-to-end-tests-fat
       "org.apache.flink" % "flink-table-common" % flinkVersion % "provided",
       "org.apache.flink" % "flink-table-runtime" % flinkVersion % "provided",
       "org.apache.flink" % "flink-parquet" % flinkVersion,
-      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion,
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion excludeAll (
+        ExclusionRule("com.fasterxml.jackson.core"),
+        ExclusionRule("com.fasterxml.jackson.module")
+      ),
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion,
+      "org.apache.hadoop" % "hadoop-aws" % hadoopVersion
     ),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
@@ -829,12 +833,16 @@ lazy val flinkEndToEndTests = (project in file("flink/end-to-end-tests"))
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-clients" % flinkVersion % "test",
       "org.apache.flink" % "flink-parquet" % flinkVersion % "test",
-      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion % "test",
+      "org.apache.flink" % "flink-s3-fs-hadoop" % flinkVersion excludeAll (
+        ExclusionRule("com.fasterxml.jackson.core"),
+        ExclusionRule("com.fasterxml.jackson.module")
+      ),
       "org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test",
       "org.apache.flink" % "flink-table-common" % flinkVersion % "test",
       "org.apache.flink" % "flink-table-runtime" % flinkVersion % "test",
       "org.apache.hadoop" % "hadoop-aws" % hadoopVersion % "test",
       "com.squareup.okhttp3" % "okhttp" % "4.10.0" % "test",
+      "org.apache.parquet" % "parquet-avro" % "1.12.3" % "test",
       "org.junit.vintage" % "junit-vintage-engine" % "5.8.2" % "test",
       "org.junit.jupiter" % "junit-jupiter-params" % "5.8.2" % "test",
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
