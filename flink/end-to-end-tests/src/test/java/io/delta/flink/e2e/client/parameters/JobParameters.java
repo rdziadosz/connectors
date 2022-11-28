@@ -20,27 +20,41 @@ package io.delta.flink.e2e.client.parameters;
 
 import java.util.Map;
 
+/**
+ * Class that contains all the parameters necessary to run the Flink job using the
+ * {@link io.delta.flink.e2e.client.FlinkClient}
+ */
 public class JobParameters {
-
-    private final String jarPath;
+    /**
+     * String value that identifies a jar. When uploading the jar to Flink Cluster a path is
+     * returned, where the filename is the ID.
+     */
     private final String jarId;
+
+    /**
+     * String value that specifies the fully qualified name of the entry point class.
+     */
     private final String entryPointClassName;
+
+    /**
+     * Positive integer value that specifies the desired parallelism for the job.
+     */
     private final int parallelism;
+
+    /**
+     * Map that contains flink job arguments.
+     */
     private final Map<String, String> arguments;
 
-    JobParameters(String jarPath,
-                  String jarId, String entryPointClassName,
-                  int parallelism,
-                  Map<String, String> arguments) {
-        this.jarPath = jarPath;
+    JobParameters(
+            String jarId,
+            String entryPointClassName,
+            int parallelism,
+            Map<String, String> arguments) {
         this.jarId = jarId;
         this.entryPointClassName = entryPointClassName;
         this.parallelism = parallelism;
         this.arguments = arguments;
-    }
-
-    public String getJarPath() {
-        return jarPath;
     }
 
     public String getJarId() {
@@ -62,8 +76,7 @@ public class JobParameters {
     @Override
     public String toString() {
         return "JobParameters{" +
-                "jarPath='" + jarPath + '\'' +
-                ", jarId='" + jarId + '\'' +
+                "jarId='" + jarId + '\'' +
                 ", entryPointClassName='" + entryPointClassName + '\'' +
                 ", parallelism=" + parallelism +
                 ", arguments=" + arguments +

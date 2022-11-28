@@ -18,12 +18,17 @@
 
 package io.delta.flink.e2e.client;
 
+/**
+ * Factory for {@link FlinkClient}.
+ */
 public class FlinkClientFactory {
-
-    public static FlinkClient getFlinkRestClient(String host, int port) {
-        return new FlinkRestClient(host, port);
-    }
-
+    /**
+     * Creates {@link FlinkClient} instance.
+     *
+     * @param host host on which the Flink API is available
+     * @param port port on which the Flink API is available
+     * @return new {@link FlinkClient} instance.
+     */
     public static FlinkClient getCustomRestClient(String host, int port) {
         return new CustomRestClient(host, port);
     }

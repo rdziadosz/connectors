@@ -24,7 +24,14 @@ import java.time.Duration;
 import java.util.stream.Collectors;
 
 import io.delta.flink.e2e.client.parameters.JobParameters;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.DeserializationFeature;
@@ -41,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 class CustomRestClient implements FlinkClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CustomRestClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CustomRestClient.class);
 
     private static final ObjectMapper objectMapper;
 
@@ -63,9 +70,15 @@ class CustomRestClient implements FlinkClient {
                 .build();
     }
 
+    /**
+     * Uploads a jar to the Flink cluster. The jar is sent as multi-part data.
+     *
+     * @param jarPath path to jar file to be uploaded
+     * @return string value that identifies uploaded jar file
+     */
     @Override
     public String uploadJar(String jarPath) throws IOException {
-        LOGGER.info("Uploading jar: {}", jarPath);
+        LOG.info("Uploading jar: {}", jarPath);
         HttpUrl url = urlBuilder()
                 .addPathSegment("jars")
                 .addPathSegment("upload")
@@ -76,35 +89,54 @@ class CustomRestClient implements FlinkClient {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", jarFile.getName(),
                         RequestBody.create(
-                                MediaType.parse("application/x-java-archive"),
-                                new File(jarPath))
+                                new File(jarPath),
+                                MediaType.parse("application/x-java-archive")
+                                )
                 )
                 .build();
 
         Request request = new Request.Builder().url(url).post(requestBody).build();
         JarsUploadResponse uploadResponse = executeRequest(request, JarsUploadResponse.class);
         String jarId = substringAfterLastSlash(uploadResponse.getFilename());
-        LOGGER.info("Jar uploaded; id={}", jarId);
+        LOG.info("Jar uploaded; id={}", jarId);
         return jarId;
     }
 
-    private String substringAfterLastSlash(String filename) {
-        String[] parts = filename.split("/");
+    /**
+     * Returns the substring after the last slash. Allows to extract the value that identifies
+     * uploaded jar file from the Flink API response.
+     *
+     * @param path path returned by Flink API
+     * @return value that identifies uploaded jar file
+     */
+    private String substringAfterLastSlash(String path) {
+        String[] parts = path.split("/");
         return parts[parts.length - 1];
     }
 
+    /**
+     * Deletes a jar file from Flink cluster.
+     *
+     * @param jarId string value that identifies jar file
+     */
     @Override
     public void deleteJar(String jarId) throws Exception {
-        LOGGER.info("Deleting jar {}.", jarId);
+        LOG.info("Deleting jar {}.", jarId);
         HttpUrl url = urlBuilder()
                 .addPathSegment("jars")
                 .addPathSegment(jarId)
                 .build();
         Request request = new Request.Builder().url(url).delete().build();
         executeRequest(request);
-        LOGGER.info("Jar {} deleted.", jarId);
+        LOG.info("Jar {} deleted.", jarId);
     }
 
+    /**
+     * Submits a Flink job. Jar file must be previously uploaded via {@link CustomRestClient#uploadJar}.
+     *
+     * @param parameters parameters necessary to run the Flink job
+     * @return value that identifies a job
+     */
     @Override
     public JobID run(JobParameters parameters) throws Exception {
         String programArgumentsString = parameters.getArguments().entrySet().stream()
@@ -126,17 +158,21 @@ class CustomRestClient implements FlinkClient {
                 .build();
 
         try {
-            LOGGER.info("Submitting flink job; parameters: {}", parameters);
+            LOG.info("Submitting flink job; parameters: {}", parameters);
             RunJarResponse runJarResponse = executeRequest(request, RunJarResponse.class);
             String jobId = runJarResponse.getJobid();
-            LOGGER.info("Job submitted; jobId={}.", jobId);
+            LOG.info("Job submitted; jobId={}.", jobId);
             return JobID.fromHexString(jobId);
         } catch (Exception e) {
-            LOGGER.error("Failed to submit job.", e);
             throw e;
         }
     }
 
+    /**
+     * Terminates a Flink job.
+     *
+     * @param jobID value that identifies a job
+     */
     @Override
     public void cancel(JobID jobID) throws Exception {
         HttpUrl url = urlBuilder()
@@ -150,6 +186,12 @@ class CustomRestClient implements FlinkClient {
         executeRequest(request);
     }
 
+    /**
+     * Returns the current status of a job execution.
+     *
+     * @param jobID value that identifies a job
+     * @return current status of execution
+     */
     @Override
     public JobStatus getStatus(JobID jobID) throws Exception {
         HttpUrl url = urlBuilder()
@@ -168,12 +210,18 @@ class CustomRestClient implements FlinkClient {
                 .port(port);
     }
 
+    /**
+     * Executes the query and deserializes the Flink API response.
+     *
+     * @param request the request to send to Flink API
+     * @param responseClass class to which the response should be deserialized
+     * @return deserialized response from Flink REST API
+     * @param <T> deserialized response type
+     */
     protected <T> T executeRequest(Request request, Class<T> responseClass) throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
             ResponseBody body = response.body();
             if (!response.isSuccessful()) {
-                LOGGER.error("Request failed; code={}; body={}", response.code(),
-                        body == null ? null : body.string());
                 throw new RuntimeException("Request failed: " + response);
             }
             if (body == null) {
@@ -183,6 +231,11 @@ class CustomRestClient implements FlinkClient {
         }
     }
 
+    /**
+     * Executes the Flink REST API query.
+     *
+     * @param request the request to send to Flink API
+     */
     protected void executeRequest(Request request) throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
@@ -192,6 +245,10 @@ class CustomRestClient implements FlinkClient {
     }
 
 
+    /**
+     * Class used to deserialize Flink REST API response containing information about jar file,
+     * which has been uploaded.
+     */
     private static class JarsUploadResponse {
         private String filename;
         private String status;
@@ -213,6 +270,10 @@ class CustomRestClient implements FlinkClient {
         }
     }
 
+    /**
+     * Class used to deserialize Flink REST API response containing information about job, which
+     * has been submitted.
+     */
     private static class RunJarResponse {
         private String jobid;
 
@@ -225,8 +286,10 @@ class CustomRestClient implements FlinkClient {
         }
     }
 
+    /**
+     * Class used to deserialize Flink REST API response containing information about job status.
+     */
     private static class JobStatusResponse {
-
         private String state;
 
         public String getState() {
