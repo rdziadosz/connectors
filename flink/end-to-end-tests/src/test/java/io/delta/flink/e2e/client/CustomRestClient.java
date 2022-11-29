@@ -91,7 +91,7 @@ class CustomRestClient implements FlinkClient {
                         RequestBody.create(
                                 new File(jarPath),
                                 MediaType.parse("application/x-java-archive")
-                                )
+                        )
                 )
                 .build();
 
@@ -157,15 +157,11 @@ class CustomRestClient implements FlinkClient {
                 .url(url)
                 .build();
 
-        try {
-            LOG.info("Submitting flink job; parameters: {}", parameters);
-            RunJarResponse runJarResponse = executeRequest(request, RunJarResponse.class);
-            String jobId = runJarResponse.getJobid();
-            LOG.info("Job submitted; jobId={}.", jobId);
-            return JobID.fromHexString(jobId);
-        } catch (Exception e) {
-            throw e;
-        }
+        LOG.info("Submitting flink job; parameters: {}", parameters);
+        RunJarResponse runJarResponse = executeRequest(request, RunJarResponse.class);
+        String jobId = runJarResponse.getJobid();
+        LOG.info("Job submitted; jobId={}.", jobId);
+        return JobID.fromHexString(jobId);
     }
 
     /**
@@ -213,10 +209,10 @@ class CustomRestClient implements FlinkClient {
     /**
      * Executes the query and deserializes the Flink API response.
      *
-     * @param request the request to send to Flink API
+     * @param request       the request to send to Flink API
      * @param responseClass class to which the response should be deserialized
+     * @param <T>           deserialized response type
      * @return deserialized response from Flink REST API
-     * @param <T> deserialized response type
      */
     protected <T> T executeRequest(Request request, Class<T> responseClass) throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
